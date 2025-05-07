@@ -26,7 +26,7 @@ public class HomeActivity extends AppCompatActivity {
 
         if (user != null) {
             // Display the user's name and email
-            welcomeTextView.setText("Welcome " + user.getDisplayName() + "!");
+            welcomeTextView.setText("Hi, " + user.getDisplayName() + "!");
         }
     }
 }
