@@ -3,7 +3,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="@drawable/dark_bg">
+    android:background="@drawable/Light_bg">
 
     <ImageView
         android:id="@+id/logoImage"
