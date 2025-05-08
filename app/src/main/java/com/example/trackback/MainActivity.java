@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, "Only UMak emails are allowed.", Toast.LENGTH_LONG).show();
                             }
                         }
+
                     } else {
                         Log.w("MainActivity", "signInWithCredential:failure", task.getException());
                         Toast.makeText(MainActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
