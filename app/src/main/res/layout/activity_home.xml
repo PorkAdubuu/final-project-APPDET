@@ -8,245 +8,17 @@
     android:background="@color/light_gray"
     tools:context=".HomeActivity">
 
-
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:scaleType="fitXY"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/arc_blue" />
-
+    <!-- Main frame container where fragments will be loaded -->
     <FrameLayout
-        android:id="@+id/frame_container"
+        android:id="@+id/frame_main"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" /> <!-- space for BottomNavigationView -->
 
-    </FrameLayout>
-
-    <TextView
-        android:id="@+id/welcomeTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/montserrat_extrabold"
-        android:text="Hi, FirstName!"
-        android:textColor="@color/white"
-        android:textSize="25sp"
-        android:textStyle="bold"
-        android:layout_marginLeft="20dp"
-        android:layout_marginBottom="150dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/frameLayout"
-        app:layout_constraintHorizontal_bias="0.139"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.079" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:text="Turn panic into peace. Use TrackBack."
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.154"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/welcomeTextView" />
-
-    <FrameLayout
-        android:id="@+id/frameLayout"
-        android:layout_width="85dp"
-        android:layout_height="85dp"
-        android:layout_marginTop="30dp"
-        android:background="@drawable/profile_border"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.895"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/profileImageView"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_gravity="center"
-            android:scaleType="centerCrop" />
-
-
-    </FrameLayout>
-
-    <EditText
-        android:id="@+id/searchEditText"
-        android:layout_width="280dp"
-        android:layout_height="50dp"
-        android:background="@drawable/search_bar_background"
-        android:drawableStart="@drawable/ic_search"
-        android:drawablePadding="12dp"
-        android:hint="Tap to search"
-        android:inputType="text"
-        android:paddingStart="20dp"
-        android:paddingEnd="16dp"
-        android:textColor="@color/black"
-        android:textColorHint="@color/gray"
-        android:textSize="15sp"
-        android:layout_marginTop="30dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.183" />
-
-
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="135dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/date_box"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toStartOf="@+id/linearLayout2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchEditText">
-
-        <TextView
-            android:id="@+id/dayTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/montserrat_extrabold"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:text="00"
-            android:textColor="@color/white"
-            android:textSize="60sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/monthTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="month"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="wrap_content"
-        android:layout_height="135dp"
-        android:layout_marginLeft="140dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/report_bg_gradient"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="14dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchEditText">
-
-        <!-- Pie Chart Placeholder -->
-        <ImageView
-            android:id="@+id/pieChartPlaceholder"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginEnd="5dp"
-            android:background="@drawable/pie_border"
-            android:padding="8dp"
-            android:src="@drawable/ic_pie_placeholder" />
-        <!-- Text and Legend -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:text="Report Summary"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="■ Found Items"
-                    android:textColor="@color/white"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="■ Lost Items"
-                    android:textColor="@color/white"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="70dp"
-        android:text="Recent Reports of Lost and Found Items"
-        android:textColor="@color/blue"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@+id/textView3"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
-
-
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="330dp"
-        android:text="See All"
-        android:textColor="@color/gray"
-        android:textStyle="bold"
-        android:layout_marginTop="5dp"
-        app:layout_constraintEnd_toEndOf="@+id/frame_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
-
-
-    </androidx.recyclerview.widget.RecyclerView>
-
-
-
-
-
+    <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
@@ -260,9 +32,28 @@
         app:itemTextColor="@color/nav_item_selector"
         app:layout_constraintBottom_toBottomOf="parent" >
 
-
-
+        <!-- Floating Action Button inside the Bottom Navigation Bar -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatingActionButtonAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:layout_gravity="center"
+            android:backgroundTint="@color/blue"
+            android:textColor="@android:color/white"
+            app:srcCompat="@drawable/baseline_add_24" />
     </com.google.android.material.bottomnavigation.BottomNavigationView>
 
+    <!-- Overlay Frame (for dialog-like fragments) -->
+    <FrameLayout
+        android:id="@+id/frame_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

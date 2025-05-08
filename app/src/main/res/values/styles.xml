@@ -1,0 +1,8 @@
+<resources>
+    <style name="FloatingActivityTheme" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowIsTranslucent">true</item> <!-- Make the background translucent -->
+        <item name="android:backgroundDimEnabled">true</item> <!-- Dim the background -->
+        <item name="android:windowBackground">@android:color/transparent</item> <!-- Transparent window background -->
+        <item name="android:windowFrame">@android:color/transparent</item>
+    </style>
+</resources>

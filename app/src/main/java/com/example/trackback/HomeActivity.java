@@ -2,84 +2,98 @@ package com.example.trackback;
 
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
-import com.bumptech.glide.Glide;
-import android.widget.ImageView;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
-    private TextView welcomeTextView;
-
+    private FrameLayout overlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        overlay = findViewById(R.id.frame_overlay);
 
 
+        //add button floating
+        FloatingActionButton fabAdd = findViewById(R.id.floatingActionButtonAdd);
 
-        mAuth = FirebaseAuth.getInstance();
-        welcomeTextView = findViewById(R.id.welcomeTextView);
+        // Set click listener to show the dialog
+        fabAdd.setOnClickListener(view -> {
+            AddReportDialogFragment dialog = new AddReportDialogFragment();
+            dialog.show(getSupportFragmentManager(), "AddReportDialog");
+        });
+        // Initialize BottomNavigationView
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
-        // Get the current signed-in user
-        FirebaseUser user = mAuth.getCurrentUser();
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
 
-        if (user != null) {
-            String fullName = user.getDisplayName();
-            String firstName = fullName != null ? fullName.split(" ")[0] : "User";
-
-            // Capitalize only the first letter
-            if (!firstName.isEmpty()) {
-                firstName = firstName.substring(0, 1).toUpperCase() + firstName.substring(1).toLowerCase();
+            if (itemId == R.id.nav_home) {
+                overlay.setVisibility(View.VISIBLE);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_overlay, new HomeFragment())
+                        .addToBackStack(null)
+                        .commit();
+                return true;
+            } else if (itemId == R.id.nav_search) {
+                // Handle Profile and open ItemsFragment
+                overlay.setVisibility(View.VISIBLE);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_overlay, new ItemsFragment())
+                        .addToBackStack(null)
+                        .commit();
+                return true;
+            } else if (itemId == R.id.nav_add) {
+                // Show the AddReportDialogFragment
+                AddReportDialogFragment dialog = new AddReportDialogFragment();
+                dialog.show(getSupportFragmentManager(), "AddReportDialog");
+                return true;
+            } else if (itemId == R.id.nav_notif) {
+                // Handle Notifications
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                // Handle Profile and open FragmentProfile
+                overlay.setVisibility(View.VISIBLE);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_overlay, new FragmentProfile())
+                        .addToBackStack(null)
+                        .commit();
+                return true;
+            } else {
+                return false;
             }
+        });
 
-            welcomeTextView.setText("Hi, " + firstName + "!");
+
+        // Default fragment
+        if (savedInstanceState == null) {
+            replaceFragment(new HomeFragment());
         }
-
-        ImageView profileImageView = findViewById(R.id.profileImageView);
-
-        if (user != null && user.getPhotoUrl() != null) {
-            Glide.with(this)
-                    .load(user.getPhotoUrl())
-                    .circleCrop()
-                    .into(profileImageView);
-        } else {
-            Glide.with(this)
-                    .load(R.drawable.default_avatar) // your fallback image
-                    .circleCrop()
-                    .into(profileImageView);
-        }
-
-        TextView dayTextView = findViewById(R.id.dayTextView);
-        TextView monthTextView = findViewById(R.id.monthTextView);
-
-        SimpleDateFormat dayFormat = new SimpleDateFormat("dd", Locale.getDefault());
-        SimpleDateFormat monthFormat = new SimpleDateFormat("MMM", Locale.getDefault());
-
-        Date currentDate = new Date();
-
-        dayTextView.setText(dayFormat.format(currentDate));
-        monthTextView.setText(monthFormat.format(currentDate).toUpperCase());
-
-
     }
 
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+            overlay.setVisibility(View.GONE);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
-
+    // Helper method to replace fragments
+    private void replaceFragment(androidx.fragment.app.Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame_main, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 }

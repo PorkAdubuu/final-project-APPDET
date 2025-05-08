@@ -9,6 +9,7 @@
         android:title="Search" />
     <item
         android:id="@+id/nav_add"
+        android:enabled="false"
         android:icon="@drawable/ic_adddd"
         android:title="Add" />
     <item
