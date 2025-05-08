@@ -1,6 +1,8 @@
 package com.example.trackback;
 
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -26,6 +30,9 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+
+
 
         mAuth = FirebaseAuth.getInstance();
         welcomeTextView = findViewById(R.id.welcomeTextView);
@@ -72,4 +79,7 @@ public class HomeActivity extends AppCompatActivity {
 
 
     }
+
+
+
 }

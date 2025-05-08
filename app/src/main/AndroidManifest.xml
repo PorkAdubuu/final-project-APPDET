@@ -13,12 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TrackBack"
         tools:targetApi="31">
-        <activity
-            android:name=".ProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".profile"
-            android:exported="false" /> <!-- SplashActivity should be the launcher -->
+
         <activity
             android:name=".SplashActivity"
             android:exported="true"
