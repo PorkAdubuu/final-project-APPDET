@@ -15,7 +15,7 @@
         <ImageView
             android:id="@+id/imageView3"
             android:layout_width="250dp"
-            android:layout_height="200dp"
+            android:layout_height="250dp"
             android:scaleType="fitXY"
             android:layout_marginTop="30dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -48,13 +48,14 @@
             app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/reportLostBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Report Lost Item"
             android:layout_marginTop="20dp"
             android:paddingRight="35dp"
             android:paddingLeft="35dp"
+            android:textSize="13.5sp"
             android:backgroundTint="@color/blue1"
             android:textColor="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
@@ -62,17 +63,18 @@
             app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/reportFoundBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Report Found Item"
+            android:textSize="13sp"
             android:paddingRight="30dp"
             android:paddingLeft="30dp"
             android:textColor="@android:color/white"
             android:backgroundTint="@color/blue1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button" />
+            app:layout_constraintTop_toBottomOf="@+id/reportLostBtn" />
 
 
 

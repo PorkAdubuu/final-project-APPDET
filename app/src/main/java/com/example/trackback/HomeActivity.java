@@ -73,9 +73,13 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
-        // Default fragment
+        // First launch - show HomeFragment and overlay
         if (savedInstanceState == null) {
-            replaceFragment(new HomeFragment());
+            overlay.setVisibility(View.VISIBLE);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_overlay, new HomeFragment())
+                    .addToBackStack(null)
+                    .commit();
         }
     }
 
