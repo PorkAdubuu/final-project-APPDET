@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:layout_margin="8dp"
+    android:background="@drawable/bg_item_card"
+    android:elevation="4dp">
+
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/profile_border">
+
+        <ImageView
+            android:id="@+id/profileImageView"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop" />
+
+
+    </FrameLayout>
+
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/itemLostText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Item Lost: Phone"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/categoryText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Category: Electronics"
+            android:textColor="#555555"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/locationText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location: Library"
+            android:textColor="#555555"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/dateText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date Lost: 2025-05-12"
+            android:textColor="#555555"
+            android:textSize="14sp" />
+
+
+    </LinearLayout>
+</LinearLayout>

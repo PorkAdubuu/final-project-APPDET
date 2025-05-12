@@ -40,7 +40,6 @@ public class HomeActivity extends AppCompatActivity {
                 overlay.setVisibility(View.VISIBLE);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_overlay, new HomeFragment())
-                        .addToBackStack(null)
                         .commit();
                 return true;
             } else if (itemId == R.id.nav_search) {
@@ -48,7 +47,6 @@ public class HomeActivity extends AppCompatActivity {
                 overlay.setVisibility(View.VISIBLE);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_overlay, new ItemsFragment())
-                        .addToBackStack(null)
                         .commit();
                 return true;
             } else if (itemId == R.id.nav_add) {
@@ -64,7 +62,6 @@ public class HomeActivity extends AppCompatActivity {
                 overlay.setVisibility(View.VISIBLE);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_overlay, new FragmentProfile())
-                        .addToBackStack(null)
                         .commit();
                 return true;
             } else {
@@ -78,7 +75,6 @@ public class HomeActivity extends AppCompatActivity {
             overlay.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_overlay, new HomeFragment())
-                    .addToBackStack(null)
                     .commit();
         }
     }

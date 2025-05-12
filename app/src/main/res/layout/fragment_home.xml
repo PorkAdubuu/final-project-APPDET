@@ -322,7 +322,7 @@
         app:itemTextColor="@color/nav_item_selector"
         app:layout_constraintBottom_toBottomOf="parent" >
 
-        
+
     </com.google.android.material.bottomnavigation.BottomNavigationView>
 
 
