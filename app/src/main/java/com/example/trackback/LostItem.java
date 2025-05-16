@@ -1,53 +1,64 @@
 package com.example.trackback;
 
+import com.google.firebase.Timestamp;
+
 public class LostItem {
 
-    private String itemLostText;
+    private Timestamp timestamp;
+    private String itemLost;
     private String category;
-    private String brandText;
-    private String dateText;
-    private String timeText;
-    private String additionalInfoText;
-    private String lastSeenText;
-    private String moreInfoText;
-    private String firstNameText;
-    private String lastNameText;
-    private String phoneNumber;
-    private String profileUrl;  // Field for the profile image URL
+    private String brand;
+    private String date;
+    private String time;
+    private String additionalInfo;
+    private String lastSeen;
+    private String moreInfo;
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private String profileUrl;
+    private String userId;  // add userId here
 
     // Default constructor required for Firestore
     public LostItem() {
     }
 
-    // Constructor to easily create a LostItem object
-    public LostItem(String itemLostText, String category, String brandText, String dateText, String timeText,
-                    String additionalInfoText, String lastSeenText, String moreInfoText,
-                    String firstNameText, String lastNameText, String phoneNumber, String profileUrl) {
-        this.itemLostText = itemLostText;
+    // Full constructor with userId
+    public LostItem(String itemLost, String category, String brand, String date, String time,
+                    String additionalInfo, String lastSeen, String moreInfo,
+                    String firstName, String lastName, String phone, String profileUrl, String userId) {
+        this.itemLost = itemLost;
         this.category = category;
-        this.brandText = brandText;
-        this.dateText = dateText;
-        this.timeText = timeText;
-        this.additionalInfoText = additionalInfoText;
-        this.lastSeenText = lastSeenText;
-        this.moreInfoText = moreInfoText;
-        this.firstNameText = firstNameText;
-        this.lastNameText = lastNameText;
-        this.phoneNumber = phoneNumber;
-        this.profileUrl = profileUrl;  // Initialize the profileUrl
+        this.brand = brand;
+        this.date = date;
+        this.time = time;
+        this.additionalInfo = additionalInfo;
+        this.lastSeen = lastSeen;
+        this.moreInfo = moreInfo;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.profileUrl = profileUrl;
+        this.userId = userId;
+        this.timestamp = Timestamp.now();
     }
 
-    // Getter and setter methods
-    public String getProfileUrl() {  // Updated getter method
-        return profileUrl;
+    // Getters and setters
+
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 
-    public String getItemLostText() {
-        return itemLostText;
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
-    public void setItemLostText(String itemLostText) {
-        this.itemLostText = itemLostText;
+    public String getItemLost() {
+        return itemLost;
+    }
+
+    public void setItemLost(String itemLost) {
+        this.itemLost = itemLost;
     }
 
     public String getCategory() {
@@ -58,75 +69,91 @@ public class LostItem {
         this.category = category;
     }
 
-    public String getBrandText() {
-        return brandText;
+    public String getBrand() {
+        return brand;
     }
 
-    public void setBrandText(String brandText) {
-        this.brandText = brandText;
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
-    public String getDateText() {
-        return dateText;
+    public String getDate() {
+        return date;
     }
 
-    public void setDateText(String dateText) {
-        this.dateText = dateText;
+    public void setDate(String date) {
+        this.date = date;
     }
 
-    public String getTimeText() {
-        return timeText;
+    public String getTime() {
+        return time;
     }
 
-    public void setTimeText(String timeText) {
-        this.timeText = timeText;
+    public void setTime(String time) {
+        this.time = time;
     }
 
-    public String getAdditionalInfoText() {
-        return additionalInfoText;
+    public String getAdditionalInfo() {
+        return additionalInfo;
     }
 
-    public void setAdditionalInfoText(String additionalInfoText) {
-        this.additionalInfoText = additionalInfoText;
+    public void setAdditionalInfo(String additionalInfo) {
+        this.additionalInfo = additionalInfo;
     }
 
-    public String getLastSeenText() {
-        return lastSeenText;
+    public String getLastSeen() {
+        return lastSeen;
     }
 
-    public void setLastSeenText(String lastSeenText) {
-        this.lastSeenText = lastSeenText;
+    public void setLastSeen(String lastSeen) {
+        this.lastSeen = lastSeen;
     }
 
-    public String getMoreInfoText() {
-        return moreInfoText;
+    public String getMoreInfo() {
+        return moreInfo;
     }
 
-    public void setMoreInfoText(String moreInfoText) {
-        this.moreInfoText = moreInfoText;
+    public void setMoreInfo(String moreInfo) {
+        this.moreInfo = moreInfo;
     }
 
-    public String getFirstNameText() {
-        return firstNameText;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setFirstNameText(String firstNameText) {
-        this.firstNameText = firstNameText;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public String getLastNameText() {
-        return lastNameText;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setLastNameText(String lastNameText) {
-        this.lastNameText = lastNameText;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getProfileUrl() {
+        return profileUrl;
+    }
+
+    public void setProfileUrl(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

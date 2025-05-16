@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -121,6 +122,7 @@ public class ReportlostActivity extends AppCompatActivity {
                 firstNameText.getText().toString(),
                 lastNameText.getText().toString(),
                 phoneNumber.getText().toString()
+
         ));
     }
 
@@ -128,45 +130,30 @@ public class ReportlostActivity extends AppCompatActivity {
                                  String time, String additionalInfo, String lastSeen,
                                  String moreInfo, String firstName, String lastName, String phone) {
 
-        Log.d("PublishLostItem", "Item: " + itemLost);
-        Log.d("PublishLostItem", "Category: " + category);
-        Log.d("PublishLostItem", "Brand: " + brand);
-        Log.d("PublishLostItem", "Date: " + date);
-        Log.d("PublishLostItem", "Time: " + time);
-        Log.d("PublishLostItem", "Additional Info: " + additionalInfo);
-        Log.d("PublishLostItem", "Last Seen: " + lastSeen);
-        Log.d("PublishLostItem", "More Info: " + moreInfo);
-        Log.d("PublishLostItem", "Name: " + firstName + " " + lastName);
-        Log.d("PublishLostItem", "Phone: " + phone);
-
         String profileUrl = "";
         if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null) {
             profileUrl = mAuth.getCurrentUser().getPhotoUrl().toString();
         }
 
-        // Check if FirebaseAuth is initialized correctly and user is logged in
         if (mAuth.getCurrentUser() != null) {
-            // Create the LostItem object
-            LostItem lostItem = new LostItem(itemLost, category, brand, date, time, additionalInfo,
-                    lastSeen, moreInfo, firstName, lastName, phone, profileUrl);
+            String userId = mAuth.getCurrentUser().getUid();  // <-- get current user's UID
 
-            // Add lost item to Firestore
+            LostItem lostItem = new LostItem(itemLost, category, brand, date, time, additionalInfo,
+                    lastSeen, moreInfo, firstName, lastName, phone, profileUrl, userId);
+
             db.collection("lostItems")
                     .add(lostItem)
                     .addOnSuccessListener(documentReference -> {
-                        Log.d("Firestore", "Lost item added with ID: " + documentReference.getId());
                         Toast.makeText(this, "Lost item reported successfully!", Toast.LENGTH_SHORT).show();
                         finish();
                     })
                     .addOnFailureListener(e -> {
-                        Log.e("Firestore", "Error adding document", e);
                         Toast.makeText(this, "Failed to report item. Try again.", Toast.LENGTH_SHORT).show();
                     });
         } else {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     public static class LostItem {
         private String itemLost;
@@ -181,10 +168,16 @@ public class ReportlostActivity extends AppCompatActivity {
         private String lastName;
         private String phone;
         private String profileUrl;
+        private String userId;  // added userId field
+        private Timestamp timestamp;
+
+        public LostItem() {
+            // Default constructor required for Firestore
+        }
 
         public LostItem(String itemLost, String category, String brand, String date, String time,
                         String additionalInfo, String lastSeen, String moreInfo, String firstName,
-                        String lastName, String phone, String profileUrl) {
+                        String lastName, String phone, String profileUrl, String userId) {
             this.itemLost = itemLost;
             this.category = category;
             this.brand = brand;
@@ -197,8 +190,11 @@ public class ReportlostActivity extends AppCompatActivity {
             this.lastName = lastName;
             this.phone = phone;
             this.profileUrl = profileUrl;
+            this.userId = userId;
+            this.timestamp = Timestamp.now();
         }
 
+        // Getters
         public String getItemLost() { return itemLost; }
         public String getCategory() { return category; }
         public String getBrand() { return brand; }
@@ -211,5 +207,7 @@ public class ReportlostActivity extends AppCompatActivity {
         public String getLastName() { return lastName; }
         public String getPhone() { return phone; }
         public String getProfileUrl() { return profileUrl; }
+        public String getUserId() { return userId; }
+        public Timestamp getTimestamp() { return timestamp; }
     }
 }
