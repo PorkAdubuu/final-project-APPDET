@@ -17,12 +17,18 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.firestore.DocumentSnapshot;
+
+
 public class LostItemDetailActivity extends AppCompatActivity {
 
     private TextView itemLostText, categoryText, brandText, dateText, timeText,
             additionalInfoText, lastSeenText, moreInfoText, firstNameText, lastNameText, phoneNumberText;
 
     private String documentId;
+
+    private String imageUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +41,38 @@ public class LostItemDetailActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+        ImageView itemImageView = findViewById(R.id.itemImageView);
+
+        itemImageView.setOnClickListener(v -> {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                ImageView fullImageView = new ImageView(this);
+                fullImageView.setAdjustViewBounds(true); // maintain aspect ratio
+                fullImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+                // Set layout params for the ImageView (e.g., width and height)
+                int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+                int height = (int) (getResources().getDisplayMetrics().heightPixels * 0.7);
+                fullImageView.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+
+                Glide.with(this).load(imageUrl).into(fullImageView);
+
+                builder.setView(fullImageView);
+
+                AlertDialog dialog = builder.create();
+                dialog.setCanceledOnTouchOutside(true);
+                dialog.setCancelable(true);
+
+                dialog.show();
+            } else {
+                Toast.makeText(this, "No image to preview", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
 
 
         FrameLayout deleteBtn = findViewById(R.id.deleteBtn);
@@ -63,6 +101,9 @@ public class LostItemDetailActivity extends AppCompatActivity {
                     .show();
         });
 
+
+
+
         // Receive documentId from intent extras
         documentId = getIntent().getStringExtra("documentId");
         if (documentId == null || documentId.isEmpty()) {
@@ -85,6 +126,34 @@ public class LostItemDetailActivity extends AppCompatActivity {
 
             dialogFragment.show(getSupportFragmentManager(), "edit_dialog");
         });
+
+
+
+        if (documentId != null && !documentId.isEmpty()) {
+            FirebaseFirestore.getInstance()
+                    .collection("lostItems")
+                    .document(documentId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            // assign to class field (not a local variable!)
+                            this.imageUrl = documentSnapshot.getString("itemImageUrl");
+
+                            if (this.imageUrl != null && !this.imageUrl.isEmpty()) {
+                                Glide.with(this)
+                                        .load(this.imageUrl)
+                                        .placeholder(R.drawable.item_default)
+                                        .into(itemImageView);
+                            } else {
+                                Toast.makeText(this, "No image available for this report.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to load image.", Toast.LENGTH_SHORT).show();
+                    });
+
+        }
 
         // Initialize TextViews (make sure IDs in XML match these)
         itemLostText = findViewById(R.id.itemLostText);
@@ -112,4 +181,6 @@ public class LostItemDetailActivity extends AppCompatActivity {
         lastNameText.setText(getIntent().getStringExtra("lastName"));
         phoneNumberText.setText(getIntent().getStringExtra("phone"));
     }
+
+
 }

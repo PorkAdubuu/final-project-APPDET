@@ -17,18 +17,17 @@ public class LostItem {
     private String firstName;
     private String lastName;
     private String phone;
-    private String profileUrl;
+    private String profileUrl;     // User's Google profile image
+    private String itemImageUrl;   // Lost item image
     private Timestamp timestamp;
 
-    // Default constructor (required by Firestore)
     public LostItem() {
     }
 
-    // Constructor without documentId (used when creating a new report)
     public LostItem(String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
                     String firstName, String lastName, String phone,
-                    String profileUrl, String userId) {
+                    String profileUrl, String itemImageUrl, String userId) {
         this.itemLost = itemLost;
         this.category = category;
         this.brand = brand;
@@ -41,15 +40,15 @@ public class LostItem {
         this.lastName = lastName;
         this.phone = phone;
         this.profileUrl = profileUrl;
+        this.itemImageUrl = itemImageUrl;
         this.userId = userId;
         this.timestamp = Timestamp.now();
     }
 
-    // Constructor with documentId (used for editing/updating a report)
     public LostItem(String documentId, String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
                     String firstName, String lastName, String phone,
-                    String profileUrl, String userId, Timestamp timestamp) {
+                    String profileUrl, String itemImageUrl, String userId, Timestamp timestamp) {
         this.documentId = documentId;
         this.itemLost = itemLost;
         this.category = category;
@@ -63,128 +62,58 @@ public class LostItem {
         this.lastName = lastName;
         this.phone = phone;
         this.profileUrl = profileUrl;
+        this.itemImageUrl = itemImageUrl;
         this.userId = userId;
         this.timestamp = timestamp;
     }
 
-    // Getters and Setters
-    public String getDocumentId() {
-        return documentId;
-    }
+    // Getters and setters...
 
-    public void setDocumentId(String documentId) {
-        this.documentId = documentId;
-    }
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
 
-    public String getUserId() {
-        return userId;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getItemLost() { return itemLost; }
+    public void setItemLost(String itemLost) { this.itemLost = itemLost; }
 
-    public String getItemLost() {
-        return itemLost;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public void setItemLost(String itemLost) {
-        this.itemLost = itemLost;
-    }
+    public String getBrand() { return brand; }
+    public void setBrand(String brand) { this.brand = brand; }
 
-    public String getCategory() {
-        return category;
-    }
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public String getTime() { return time; }
+    public void setTime(String time) { this.time = time; }
 
-    public String getBrand() {
-        return brand;
-    }
+    public String getAdditionalInfo() { return additionalInfo; }
+    public void setAdditionalInfo(String additionalInfo) { this.additionalInfo = additionalInfo; }
 
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
+    public String getLastSeen() { return lastSeen; }
+    public void setLastSeen(String lastSeen) { this.lastSeen = lastSeen; }
 
-    public String getDate() {
-        return date;
-    }
+    public String getMoreInfo() { return moreInfo; }
+    public void setMoreInfo(String moreInfo) { this.moreInfo = moreInfo; }
 
-    public void setDate(String date) {
-        this.date = date;
-    }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public String getTime() {
-        return time;
-    }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public String getAdditionalInfo() {
-        return additionalInfo;
-    }
+    public String getProfileUrl() { return profileUrl; }
+    public void setProfileUrl(String profileUrl) { this.profileUrl = profileUrl; }
 
-    public void setAdditionalInfo(String additionalInfo) {
-        this.additionalInfo = additionalInfo;
-    }
+    public String getItemImageUrl() { return itemImageUrl; }
+    public void setItemImageUrl(String itemImageUrl) { this.itemImageUrl = itemImageUrl; }
 
-    public String getLastSeen() {
-        return lastSeen;
-    }
-
-    public void setLastSeen(String lastSeen) {
-        this.lastSeen = lastSeen;
-    }
-
-    public String getMoreInfo() {
-        return moreInfo;
-    }
-
-    public void setMoreInfo(String moreInfo) {
-        this.moreInfo = moreInfo;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getProfileUrl() {
-        return profileUrl;
-    }
-
-    public void setProfileUrl(String profileUrl) {
-        this.profileUrl = profileUrl;
-    }
-
-    public Timestamp getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
-    }
+    public Timestamp getTimestamp() { return timestamp; }
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }
 }

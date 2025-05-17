@@ -61,7 +61,8 @@ public class ItemsFragment extends Fragment {
 
     private void fetchLostItemsFromFirestore() {
         CollectionReference lostItemsRef = db.collection("lostItems");
-        lostItemsRef.get()
+        lostItemsRef.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         QuerySnapshot querySnapshot = task.getResult();
@@ -81,9 +82,9 @@ public class ItemsFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Handle Firestore fetch failure
                     Log.e("Firestore", "Fetch failed: ", e);
                 });
+
     }
 }
 

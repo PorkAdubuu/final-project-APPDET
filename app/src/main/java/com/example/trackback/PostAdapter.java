@@ -5,16 +5,21 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+
+import java.util.Collections;
+import java.util.Comparator;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
@@ -51,6 +56,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             holder.datePostText.setText("Posted on: N/A");
         }
 
+        // Load image into ImageView with Glide
+        String imageUrl = item.getItemImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.item_default) // your default placeholder image
+                    .into(holder.itemImageView);
+        } else {
+            holder.itemImageView.setImageResource(R.drawable.item_default);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, LostItemDetailActivity.class);
 
@@ -80,10 +96,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
+        ImageView itemImageView;  // added
         TextView itemLostText, categoryText, dateText, timeText, locationText, datePostText;
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
+
+            itemImageView = itemView.findViewById(R.id.itemImageView);  // initialize
+
             itemLostText = itemView.findViewById(R.id.itemLostText);
             categoryText = itemView.findViewById(R.id.categoryText);
             dateText = itemView.findViewById(R.id.dateText);

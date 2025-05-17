@@ -1,14 +1,19 @@
 package com.example.trackback;
 
 import android.app.TimePickerDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -18,21 +23,36 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+
+
+
 public class ReportlostActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
+    private Uri selectedImageUri;
+    private EditText fileNameText;
+    private android.app.AlertDialog loadingDialog;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reportlost);
+
+        fileNameText = findViewById(R.id.fileNameText);
+        ImageView uploadImageBtn = findViewById(R.id.uploadImageBtn);
+
+        uploadImageBtn.setOnClickListener(v -> openImageChooser());
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -124,39 +144,116 @@ public class ReportlostActivity extends AppCompatActivity {
         ));
     }
 
+    private void openImageChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select Image"), 101);
+    }
+    private void showLoadingDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.loading_dialog, null);
+        builder.setView(view);
+        builder.setCancelable(false);
+        loadingDialog = builder.create();
+        loadingDialog.show();
+
+        if (loadingDialog.getWindow() != null) {
+            loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+    }
+
+
+    private void dismissLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
+    }
+
+
+
     private void publishLostItem(String itemLost, String category, String brand, String date,
                                  String time, String additionalInfo, String lastSeen,
                                  String moreInfo, String firstName, String lastName, String phone) {
 
         if (mAuth.getCurrentUser() != null) {
             String userId = mAuth.getCurrentUser().getUid();
+            String profileUrl = mAuth.getCurrentUser().getPhotoUrl() != null ?
+                    mAuth.getCurrentUser().getPhotoUrl().toString() : "";
 
-            // Get profile image URL (nullable)
-            String profileUrl = "";
-            if (mAuth.getCurrentUser().getPhotoUrl() != null) {
-                profileUrl = mAuth.getCurrentUser().getPhotoUrl().toString();
+            if (selectedImageUri != null) {
+                showLoadingDialog();
+
+                String docId = db.collection("lostItems").document().getId();
+                StorageReference storageRef = FirebaseStorage.getInstance()
+                        .getReference("lost_images/" + docId + ".jpg");
+
+                storageRef.putFile(selectedImageUri)
+                        .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String imageUrl = uri.toString();
+
+                            LostItem lostItem = new LostItem(
+                                    itemLost, category, brand, date, time, additionalInfo,
+                                    lastSeen, moreInfo, firstName, lastName, phone,
+                                    profileUrl, imageUrl, userId
+                            );
+                            lostItem.setDocumentId(docId);
+
+                            db.collection("lostItems").document(docId).set(lostItem)
+                                    .addOnSuccessListener(aVoid -> {
+                                        dismissLoadingDialog();
+                                        showSuccessDialog();
+
+                                        // Clear all fields
+                                        ((EditText) findViewById(R.id.itemLostText)).setText("");
+                                        ((AutoCompleteTextView) findViewById(R.id.category)).setText("");
+                                        ((EditText) findViewById(R.id.brandText)).setText("");
+                                        ((EditText) findViewById(R.id.dateText)).setText("");
+                                        ((EditText) findViewById(R.id.timeText)).setText("");
+                                        ((EditText) findViewById(R.id.additionalInfoText)).setText("");
+                                        ((EditText) findViewById(R.id.lastSeenText)).setText("");
+                                        ((EditText) findViewById(R.id.moreInfoText)).setText("");
+                                        ((EditText) findViewById(R.id.firstNameText)).setText("");
+                                        ((EditText) findViewById(R.id.lastNameText)).setText("");
+                                        ((EditText) findViewById(R.id.phoneNumber)).setText("");
+                                        ((EditText) findViewById(R.id.fileNameText)).setText("");
+                                        selectedImageUri = null;
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        dismissLoadingDialog();
+                                        Toast.makeText(this, "Failed to report item. Try again.", Toast.LENGTH_SHORT).show();
+                                        Log.e("Firestore", "Error adding document", e);
+                                    });
+
+                        }))
+                        .addOnFailureListener(e -> {
+                            dismissLoadingDialog();
+                            Toast.makeText(this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                Toast.makeText(this, "Please select an image.", Toast.LENGTH_SHORT).show();
             }
-
-            String docId = db.collection("lostItems").document().getId();
-
-            LostItem lostItem = new LostItem(itemLost, category, brand, date, time, additionalInfo,
-                    lastSeen, moreInfo, firstName, lastName, phone, profileUrl, userId);
-            lostItem.setDocumentId(docId);
-
-            db.collection("lostItems")
-                    .document(docId)
-                    .set(lostItem)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Lost item reported successfully!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to report item. Try again.", Toast.LENGTH_SHORT).show();
-                        Log.e("Firestore", "Error adding document", e);
-                    });
         } else {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 101 && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            selectedImageUri = data.getData();
+            String fileName = selectedImageUri.getLastPathSegment();
+            fileNameText.setText(fileName);
+        }
+    }
+
+    private void showSuccessDialog() {
+        report_success_dialog dialog = new report_success_dialog();
+        dialog.show(getSupportFragmentManager(), "report_success");
     }
 
 }

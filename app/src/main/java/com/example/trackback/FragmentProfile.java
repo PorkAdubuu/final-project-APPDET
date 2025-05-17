@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.EventListener;
@@ -25,6 +26,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 
 public class FragmentProfile extends Fragment {
 
@@ -66,9 +70,21 @@ public class FragmentProfile extends Fragment {
                     .setTitle("Log out")
                     .setMessage("Are you sure you want to log out?")
                     .setPositiveButton("Yes", (dialog, which) -> {
+                        // Configure Google Sign-In client (same as in MainActivity)
+                        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestIdToken(getString(R.string.client_id))  // use your client ID
+                                .requestEmail()
+                                .build();
+
+                        GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
+
+                        // Sign out from Firebase and Google
                         FirebaseAuth.getInstance().signOut();
-                        requireActivity().finish(); // Finish current activity
-                        startActivity(new android.content.Intent(requireContext(), MainActivity.class));
+                        googleSignInClient.signOut().addOnCompleteListener(task -> {
+                            // After sign-out complete, finish activity and go to MainActivity
+                            requireActivity().finish();
+                            startActivity(new android.content.Intent(requireContext(), MainActivity.class));
+                        });
                     })
                     .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                     .show();
@@ -114,8 +130,9 @@ public class FragmentProfile extends Fragment {
             String userId = user.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            db.collection("lostItems")  // use the same collection name as ItemsFragment
+            db.collection("lostItems")
                     .whereEqualTo("userId", userId)
+                    .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .addSnapshotListener((snapshots, e) -> {
                         if (e != null) {
                             Log.e(TAG, "Listen failed.", e);
@@ -132,6 +149,7 @@ public class FragmentProfile extends Fragment {
                         }
                         postAdapter.notifyDataSetChanged();
                     });
+
         } else {
             Log.d(TAG, "No user is logged in.");
         }

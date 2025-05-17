@@ -1,0 +1,8 @@
+<!-- res/layout/dialog_image_preview.xml -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fullImageView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:adjustViewBounds="true"
+    android:scaleType="fitCenter"
+    android:background="@android:color/black" />
