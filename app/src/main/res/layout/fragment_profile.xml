@@ -63,6 +63,38 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/logoutBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="10dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <TextView
+            android:id="@+id/textView114"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="10dp"
+            android:text="Log out"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+        <ImageView
+            android:id="@+id/imageView9"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            app:srcCompat="@drawable/logout_ic" />
+
+
+
+    </LinearLayout>
+
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="85dp"

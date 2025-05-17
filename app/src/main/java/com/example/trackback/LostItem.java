@@ -4,7 +4,8 @@ import com.google.firebase.Timestamp;
 
 public class LostItem {
 
-    private Timestamp timestamp;
+    private String documentId;
+    private String userId;
     private String itemLost;
     private String category;
     private String brand;
@@ -17,16 +18,17 @@ public class LostItem {
     private String lastName;
     private String phone;
     private String profileUrl;
-    private String userId;  // add userId here
+    private Timestamp timestamp;
 
-    // Default constructor required for Firestore
+    // Default constructor (required by Firestore)
     public LostItem() {
     }
 
-    // Full constructor with userId
+    // Constructor without documentId (used when creating a new report)
     public LostItem(String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
-                    String firstName, String lastName, String phone, String profileUrl, String userId) {
+                    String firstName, String lastName, String phone,
+                    String profileUrl, String userId) {
         this.itemLost = itemLost;
         this.category = category;
         this.brand = brand;
@@ -43,14 +45,43 @@ public class LostItem {
         this.timestamp = Timestamp.now();
     }
 
-    // Getters and setters
-
-    public Timestamp getTimestamp() {
-        return timestamp;
+    // Constructor with documentId (used for editing/updating a report)
+    public LostItem(String documentId, String itemLost, String category, String brand, String date, String time,
+                    String additionalInfo, String lastSeen, String moreInfo,
+                    String firstName, String lastName, String phone,
+                    String profileUrl, String userId, Timestamp timestamp) {
+        this.documentId = documentId;
+        this.itemLost = itemLost;
+        this.category = category;
+        this.brand = brand;
+        this.date = date;
+        this.time = time;
+        this.additionalInfo = additionalInfo;
+        this.lastSeen = lastSeen;
+        this.moreInfo = moreInfo;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.profileUrl = profileUrl;
+        this.userId = userId;
+        this.timestamp = timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+    // Getters and Setters
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getItemLost() {
@@ -149,11 +180,11 @@ public class LostItem {
         this.profileUrl = profileUrl;
     }
 
-    public String getUserId() {
-        return userId;
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 }

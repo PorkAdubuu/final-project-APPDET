@@ -1,6 +1,7 @@
 package com.example.trackback;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,28 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         } else {
             holder.datePostText.setText("Posted on: N/A");
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, LostItemDetailActivity.class);
+
+            // Pass documentId too
+            intent.putExtra("documentId", item.getDocumentId());
+
+            // Pass other fields as extras
+            intent.putExtra("itemLost", item.getItemLost());
+            intent.putExtra("category", item.getCategory());
+            intent.putExtra("brand", item.getBrand());
+            intent.putExtra("date", item.getDate());
+            intent.putExtra("time", item.getTime());
+            intent.putExtra("additionalInfo", item.getAdditionalInfo());
+            intent.putExtra("lastSeen", item.getLastSeen());
+            intent.putExtra("moreInfo", item.getMoreInfo());
+            intent.putExtra("firstName", item.getFirstName());
+            intent.putExtra("lastName", item.getLastName());
+            intent.putExtra("phone", item.getPhone());
+
+            context.startActivity(intent);
+        });
     }
 
     @Override

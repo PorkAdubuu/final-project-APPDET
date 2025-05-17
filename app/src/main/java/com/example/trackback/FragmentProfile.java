@@ -59,11 +59,29 @@ public class FragmentProfile extends Fragment {
         profileImageView = view.findViewById(R.id.profileImageView);
         postRecyclerView = view.findViewById(R.id.itemsRecyclerView);
 
+        View logoutBtn = view.findViewById(R.id.logoutBtn);
+
+        logoutBtn.setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Log out")
+                    .setMessage("Are you sure you want to log out?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        FirebaseAuth.getInstance().signOut();
+                        requireActivity().finish(); // Finish current activity
+                        startActivity(new android.content.Intent(requireContext(), MainActivity.class));
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+
+
         // Setup RecyclerView
         postRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         userReports = new ArrayList<>();
         postAdapter = new PostAdapter(requireContext(), userReports);
         postRecyclerView.setAdapter(postAdapter);
+
+
 
         
         if (user != null) {

@@ -1,5 +1,6 @@
 package com.example.trackback;
 
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,21 +10,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import android.app.TimePickerDialog;
-import android.widget.TimePicker;
-import java.util.Calendar;
 
 public class ReportlostActivity extends AppCompatActivity {
 
@@ -122,7 +121,6 @@ public class ReportlostActivity extends AppCompatActivity {
                 firstNameText.getText().toString(),
                 lastNameText.getText().toString(),
                 phoneNumber.getText().toString()
-
         ));
     }
 
@@ -130,84 +128,35 @@ public class ReportlostActivity extends AppCompatActivity {
                                  String time, String additionalInfo, String lastSeen,
                                  String moreInfo, String firstName, String lastName, String phone) {
 
-        String profileUrl = "";
-        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null) {
-            profileUrl = mAuth.getCurrentUser().getPhotoUrl().toString();
-        }
-
         if (mAuth.getCurrentUser() != null) {
-            String userId = mAuth.getCurrentUser().getUid();  // <-- get current user's UID
+            String userId = mAuth.getCurrentUser().getUid();
+
+            // Get profile image URL (nullable)
+            String profileUrl = "";
+            if (mAuth.getCurrentUser().getPhotoUrl() != null) {
+                profileUrl = mAuth.getCurrentUser().getPhotoUrl().toString();
+            }
+
+            String docId = db.collection("lostItems").document().getId();
 
             LostItem lostItem = new LostItem(itemLost, category, brand, date, time, additionalInfo,
                     lastSeen, moreInfo, firstName, lastName, phone, profileUrl, userId);
+            lostItem.setDocumentId(docId);
 
             db.collection("lostItems")
-                    .add(lostItem)
-                    .addOnSuccessListener(documentReference -> {
+                    .document(docId)
+                    .set(lostItem)
+                    .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "Lost item reported successfully!", Toast.LENGTH_SHORT).show();
                         finish();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Failed to report item. Try again.", Toast.LENGTH_SHORT).show();
+                        Log.e("Firestore", "Error adding document", e);
                     });
         } else {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    public static class LostItem {
-        private String itemLost;
-        private String category;
-        private String brand;
-        private String date;
-        private String time;
-        private String additionalInfo;
-        private String lastSeen;
-        private String moreInfo;
-        private String firstName;
-        private String lastName;
-        private String phone;
-        private String profileUrl;
-        private String userId;  // added userId field
-        private Timestamp timestamp;
-
-        public LostItem() {
-            // Default constructor required for Firestore
-        }
-
-        public LostItem(String itemLost, String category, String brand, String date, String time,
-                        String additionalInfo, String lastSeen, String moreInfo, String firstName,
-                        String lastName, String phone, String profileUrl, String userId) {
-            this.itemLost = itemLost;
-            this.category = category;
-            this.brand = brand;
-            this.date = date;
-            this.time = time;
-            this.additionalInfo = additionalInfo;
-            this.lastSeen = lastSeen;
-            this.moreInfo = moreInfo;
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.phone = phone;
-            this.profileUrl = profileUrl;
-            this.userId = userId;
-            this.timestamp = Timestamp.now();
-        }
-
-        // Getters
-        public String getItemLost() { return itemLost; }
-        public String getCategory() { return category; }
-        public String getBrand() { return brand; }
-        public String getDate() { return date; }
-        public String getTime() { return time; }
-        public String getAdditionalInfo() { return additionalInfo; }
-        public String getLastSeen() { return lastSeen; }
-        public String getMoreInfo() { return moreInfo; }
-        public String getFirstName() { return firstName; }
-        public String getLastName() { return lastName; }
-        public String getPhone() { return phone; }
-        public String getProfileUrl() { return profileUrl; }
-        public String getUserId() { return userId; }
-        public Timestamp getTimestamp() { return timestamp; }
-    }
 }
