@@ -75,9 +75,8 @@ public class ReportlostActivity extends AppCompatActivity {
         timeText.setKeyListener(null);
 
         String[] categories = {
-                "Electronics", "Documents", "Clothing", "Accessories", "Bags",
-                "Wallets", "Keys", "Jewelry", "Books", "School Supplies",
-                "ID Cards", "Mobile Phones", "Umbrellas", "Eyeglasses", "Others"
+                "Gadgets", "Personal Belongings", "Bags", "Accessories",
+                "Clothing", "School Supplies", "Drinkware", "Others"
         };
         AutoCompleteTextView autoComplete = findViewById(R.id.category);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.dropdown_item, categories);

@@ -28,43 +28,45 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
     @NonNull
     @Override
     public LostItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_lost, parent, false);  // Inflate item layout
-        return new LostItemViewHolder(view);  // Return ViewHolder
+        View view = LayoutInflater.from(context).inflate(R.layout.item_lost, parent, false);
+        return new LostItemViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull LostItemViewHolder holder, int position) {
         ListLostItem lostItem = lostItemList.get(position);
 
-        // Set text data to TextViews
         holder.itemLostText.setText("Item Lost: " + lostItem.getItemLost());
         holder.categoryText.setText("Category: " + lostItem.getCategory());
         holder.locationText.setText("Location: " + lostItem.getLastSeen());
         holder.dateText.setText("Date Lost: " + lostItem.getDate());
 
-        // Load profile image using Glide (add circleCrop for circular images, if necessary)
         if (lostItem.getProfileUrl() != null && !lostItem.getProfileUrl().isEmpty()) {
             Glide.with(context)
-                    .load(lostItem.getProfileUrl())  // Load image URL
-                    .circleCrop()  // Optional: make the image circular
-                    .into(holder.profileImageView);  // Set the image in ImageView
-        } else {
-            // Set a placeholder or fallback image if the URL is empty or null
-            Glide.with(context)
-                    .load(R.drawable.def_prof)  // Placeholder image resource
+                    .load(lostItem.getProfileUrl())
                     .circleCrop()
-                    .into(holder.profileImageView);  // Set the image
+                    .into(holder.profileImageView);
+        } else {
+            Glide.with(context)
+                    .load(R.drawable.def_prof)
+                    .circleCrop()
+                    .into(holder.profileImageView);
         }
 
-        // Handle item click (optional)
         holder.itemView.setOnClickListener(v -> {
-            // Implement the action when an item is clicked (e.g., open detailed view)
+            // Your click handler here (optional)
         });
     }
 
     @Override
     public int getItemCount() {
-        return lostItemList.size();  // Return the total number of items
+        return lostItemList.size();
+    }
+
+    // Add this method to update the adapter's list and refresh the RecyclerView
+    public void updateList(List<ListLostItem> newList) {
+        lostItemList = newList;
+        notifyDataSetChanged();
     }
 
     public static class LostItemViewHolder extends RecyclerView.ViewHolder {
