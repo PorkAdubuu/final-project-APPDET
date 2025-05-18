@@ -136,7 +136,7 @@
 
 
                 <TextView
-                    android:id="@+id/textView15"
+                    android:id="@+id/itemLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Item Lost: "
@@ -256,7 +256,7 @@
 
 
                 <TextView
-                    android:id="@+id/textView18"
+                    android:id="@+id/dateLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Date Lost: "
@@ -296,7 +296,7 @@
 
 
                 <TextView
-                    android:id="@+id/textView19"
+                    android:id="@+id/timeLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Time Lost: "
@@ -428,7 +428,7 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/textView23"
+                    android:id="@+id/locationLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"

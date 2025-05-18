@@ -174,6 +174,14 @@ public class ReportlostActivity extends AppCompatActivity {
                                  String time, String additionalInfo, String lastSeen,
                                  String moreInfo, String firstName, String lastName, String phone) {
 
+        if (itemLost.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
+                time.isEmpty() || additionalInfo.isEmpty() || lastSeen.isEmpty() ||
+                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty()) {
+
+            Toast.makeText(this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (mAuth.getCurrentUser() != null) {
             String userId = mAuth.getCurrentUser().getUid();
             String profileUrl = mAuth.getCurrentUser().getPhotoUrl() != null ?
@@ -193,8 +201,9 @@ public class ReportlostActivity extends AppCompatActivity {
                             LostItem lostItem = new LostItem(
                                     itemLost, category, brand, date, time, additionalInfo,
                                     lastSeen, moreInfo, firstName, lastName, phone,
-                                    profileUrl, imageUrl, userId
+                                    profileUrl, imageUrl, userId, "Lost"
                             );
+
                             lostItem.setDocumentId(docId);
 
                             db.collection("lostItems").document(docId).set(lostItem)

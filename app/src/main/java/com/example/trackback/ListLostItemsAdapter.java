@@ -36,7 +36,13 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
     public void onBindViewHolder(@NonNull LostItemViewHolder holder, int position) {
         ListLostItem lostItem = lostItemList.get(position);
 
-        holder.itemLostText.setText("Item Lost: " + lostItem.getItemLost());
+        String reportType = lostItem.getReportType(); // ← Add this check
+        if (reportType != null && reportType.equalsIgnoreCase("Found")) {
+            holder.itemLostText.setText("Item Found: " + lostItem.getItemLost());
+        } else {
+            holder.itemLostText.setText("Item Lost: " + lostItem.getItemLost());
+        }
+
         holder.categoryText.setText("Category: " + lostItem.getCategory());
         holder.locationText.setText("Location: " + lostItem.getLastSeen());
         holder.dateText.setText("Date Lost: " + lostItem.getDate());
@@ -54,9 +60,11 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
         }
 
         holder.itemView.setOnClickListener(v -> {
-            // Your click handler here (optional)
+            // Optional: handle item click
         });
     }
+
+
 
     @Override
     public int getItemCount() {

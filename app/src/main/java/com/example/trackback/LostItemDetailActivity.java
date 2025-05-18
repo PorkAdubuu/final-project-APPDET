@@ -30,6 +30,9 @@ public class LostItemDetailActivity extends AppCompatActivity {
 
     private String imageUrl;
 
+    private TextView itemLabel, dateLabel, timeLabel, locationLabel;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +44,12 @@ public class LostItemDetailActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        itemLabel = findViewById(R.id.itemLabel);
+        dateLabel = findViewById(R.id.dateLabel);
+        timeLabel = findViewById(R.id.timeLabel);
+        locationLabel = findViewById(R.id.locationLabel);
+
 
 
         ImageView itemImageView = findViewById(R.id.itemImageView);
@@ -139,6 +148,7 @@ public class LostItemDetailActivity extends AppCompatActivity {
                             // assign to class field (not a local variable!)
                             this.imageUrl = documentSnapshot.getString("itemImageUrl");
 
+                            // Set image as before
                             if (this.imageUrl != null && !this.imageUrl.isEmpty()) {
                                 Glide.with(this)
                                         .load(this.imageUrl)
@@ -147,6 +157,23 @@ public class LostItemDetailActivity extends AppCompatActivity {
                             } else {
                                 Toast.makeText(this, "No image available for this report.", Toast.LENGTH_SHORT).show();
                             }
+
+                            // Set labels based on reportType
+                            String reportType = documentSnapshot.getString("reportType");
+                            if (reportType != null) {
+                                if (reportType.equalsIgnoreCase("Found")) {
+                                    itemLabel.setText("Item Found: ");
+                                    dateLabel.setText("Date Found: ");
+                                    timeLabel.setText("Time Found: ");
+                                    locationLabel.setText("Found At: ");
+                                } else { // Treat all others as Lost
+                                    itemLabel.setText("Item Lost: ");
+                                    dateLabel.setText("Date Lost: ");
+                                    timeLabel.setText("Time Lost: ");
+                                    locationLabel.setText("Lost At: ");
+                                }
+                            }
+
                         }
                     })
                     .addOnFailureListener(e -> {

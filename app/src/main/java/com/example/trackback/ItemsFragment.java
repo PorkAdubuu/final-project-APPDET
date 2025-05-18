@@ -133,8 +133,8 @@ public class ItemsFragment extends Fragment {
             behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
-        // Get radio buttons and applyBtn
-        RadioButton radioAll = view.findViewById(R.id.radioAllcategory);
+        // Category RadioButtons (existing)
+        RadioButton radioAllCategory = view.findViewById(R.id.radioAllcategory);
         RadioButton radioGadget = view.findViewById(R.id.radioGadget);
         RadioButton radioAccessories = view.findViewById(R.id.radioAccessories);
         RadioButton radioPersonal = view.findViewById(R.id.radioPersonal);
@@ -143,27 +143,27 @@ public class ItemsFragment extends Fragment {
         RadioButton radioClothing = view.findViewById(R.id.radioClothing);
         RadioButton radioBag = view.findViewById(R.id.radioBag);
         RadioButton radioOthers = view.findViewById(R.id.radioOthers);
-        Button applyBtn = view.findViewById(R.id.applyBtn);
 
-        // Group all buttons manually
-        List<RadioButton> radioButtons = Arrays.asList(
-                radioAll, radioGadget, radioAccessories, radioPersonal,
+        List<RadioButton> categoryButtons = Arrays.asList(
+                radioAllCategory, radioGadget, radioAccessories, radioPersonal,
                 radioDrinkware, radioSchool, radioClothing, radioBag, radioOthers
         );
 
-        // Ensure only one is selected manually
-        for (RadioButton rb : radioButtons) {
-            rb.setOnClickListener(v -> {
-                for (RadioButton other : radioButtons) {
-                    other.setChecked(false);
-                }
-                rb.setChecked(true);
-            });
-        }
 
+
+        // ReportType RadioButtons (new)
+        RadioButton radioAllType = view.findViewById(R.id.radioAll);
+        RadioButton radioLostType = view.findViewById(R.id.radioLost);
+        RadioButton radioFoundType = view.findViewById(R.id.radioFound);
+
+        List<RadioButton> reportTypeButtons = Arrays.asList(radioAllType, radioLostType, radioFoundType);
+
+
+
+        Button applyBtn = view.findViewById(R.id.applyBtn);
         applyBtn.setOnClickListener(v -> {
+            // Get selected category
             String selectedCategory = null;
-
             if (radioGadget.isChecked()) selectedCategory = "Gadgets";
             else if (radioAccessories.isChecked()) selectedCategory = "Accessories";
             else if (radioPersonal.isChecked()) selectedCategory = "Personal Belongings";
@@ -173,17 +173,31 @@ public class ItemsFragment extends Fragment {
             else if (radioBag.isChecked()) selectedCategory = "Bags";
             else if (radioOthers.isChecked()) selectedCategory = "Others";
 
-            if (radioAll.isChecked() || selectedCategory == null) {
-                adapter.updateList(allLostItems);
-            } else {
-                filterLostItemsByCategory(selectedCategory);
+            // Get selected report type
+            String selectedReportType = null;
+            if (radioLostType.isChecked()) selectedReportType = "lost";
+            else if (radioFoundType.isChecked()) selectedReportType = "found";
+            // if radioAllType is checked or nothing is selected, keep null to indicate no filter
+
+            // Filter by both criteria
+            List<ListLostItem> filteredList = new ArrayList<>();
+
+            for (ListLostItem item : allLostItems) {
+                boolean matchesCategory = (selectedCategory == null) || (item.getCategory() != null && item.getCategory().equals(selectedCategory));
+                boolean matchesReportType = (selectedReportType == null) || (item.getReportType() != null && item.getReportType().equalsIgnoreCase(selectedReportType));
+
+                if (matchesCategory && matchesReportType) {
+                    filteredList.add(item);
+                }
             }
 
+            adapter.updateList(filteredList);
             dialog.dismiss();
         });
 
         dialog.show();
     }
+
 
 
     // Optional: keep if you’ll reuse it in new sort logic

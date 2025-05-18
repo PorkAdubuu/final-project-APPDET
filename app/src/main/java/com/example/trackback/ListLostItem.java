@@ -7,17 +7,19 @@ public class ListLostItem {
     private String lastSeen;
     private String date;
     private String email;
-    private String profileUrl; // Renamed from profileImageUrl
+    private String profileUrl;
+    private String reportType;
 
     public ListLostItem() {}
 
-    public ListLostItem(String itemLost, String category, String lastSeen, String date, String email, String profileUrl) {
+    public ListLostItem(String itemLost, String category, String lastSeen, String date, String email, String profileUrl, String reportType) {
         this.itemLost = itemLost;
         this.category = category;
         this.lastSeen = lastSeen;
         this.date = date;
         this.email = email;
         this.profileUrl = profileUrl;
+        this.reportType = reportType; 
     }
 
     public String getItemLost() {
@@ -66,5 +68,14 @@ public class ListLostItem {
 
     public void setProfileUrl(String profileUrl) {
         this.profileUrl = profileUrl;
+    }
+
+    // ✅ Getter and Setter for reportType
+    public String getReportType() {
+        return reportType;
+    }
+
+    public void setReportType(String reportType) {
+        this.reportType = reportType;
     }
 }

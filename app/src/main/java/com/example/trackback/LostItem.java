@@ -20,6 +20,7 @@ public class LostItem {
     private String profileUrl;     // User's Google profile image
     private String itemImageUrl;   // Lost item image
     private Timestamp timestamp;
+    private String reportType;
 
     public LostItem() {
     }
@@ -27,7 +28,7 @@ public class LostItem {
     public LostItem(String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
                     String firstName, String lastName, String phone,
-                    String profileUrl, String itemImageUrl, String userId) {
+                    String profileUrl, String itemImageUrl, String userId, String reportType) {
         this.itemLost = itemLost;
         this.category = category;
         this.brand = brand;
@@ -42,6 +43,7 @@ public class LostItem {
         this.profileUrl = profileUrl;
         this.itemImageUrl = itemImageUrl;
         this.userId = userId;
+        this.reportType = reportType;
         this.timestamp = Timestamp.now();
     }
 
@@ -69,6 +71,12 @@ public class LostItem {
 
     // Getters and setters...
 
+    public String getReportType() {
+        return reportType;
+    }
+    public void setReportType(String reportType) {
+        this.reportType = reportType;
+    }
     public String getDocumentId() { return documentId; }
     public void setDocumentId(String documentId) { this.documentId = documentId; }
 

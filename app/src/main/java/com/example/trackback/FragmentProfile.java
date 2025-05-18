@@ -16,13 +16,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +37,8 @@ public class FragmentProfile extends Fragment {
     private RecyclerView postRecyclerView;
     private PostAdapter postAdapter;
     private List<LostItem> userReports;
+    private TabLayout tabLayout;
+    private List<LostItem> allReports;
 
     public FragmentProfile() { }
 
@@ -62,6 +62,7 @@ public class FragmentProfile extends Fragment {
         phoneNumberText = view.findViewById(R.id.phoneNumberText);
         profileImageView = view.findViewById(R.id.profileImageView);
         postRecyclerView = view.findViewById(R.id.itemsRecyclerView);
+        tabLayout = view.findViewById(R.id.tab_layout);
 
         View logoutBtn = view.findViewById(R.id.logoutBtn);
 
@@ -81,7 +82,6 @@ public class FragmentProfile extends Fragment {
                         // Sign out from Firebase and Google
                         FirebaseAuth.getInstance().signOut();
                         googleSignInClient.signOut().addOnCompleteListener(task -> {
-                            // After sign-out complete, finish activity and go to MainActivity
                             requireActivity().finish();
                             startActivity(new android.content.Intent(requireContext(), MainActivity.class));
                         });
@@ -90,16 +90,13 @@ public class FragmentProfile extends Fragment {
                     .show();
         });
 
-
         // Setup RecyclerView
         postRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        allReports = new ArrayList<>();
         userReports = new ArrayList<>();
         postAdapter = new PostAdapter(requireContext(), userReports);
         postRecyclerView.setAdapter(postAdapter);
 
-
-
-        
         if (user != null) {
             Log.d(TAG, "User is logged in: " + user.getUid());
 
@@ -119,7 +116,6 @@ public class FragmentProfile extends Fragment {
             emailText.setText(user.getEmail() != null ? user.getEmail() : "No email available");
             phoneNumberText.setText(user.getPhoneNumber() != null ? user.getPhoneNumber() : "No phone number");
 
-            // Load profile image or default
             if (user.getPhotoUrl() != null) {
                 Glide.with(this).load(user.getPhotoUrl()).circleCrop().into(profileImageView);
             } else {
@@ -139,15 +135,55 @@ public class FragmentProfile extends Fragment {
                             return;
                         }
 
-                        userReports.clear();
+                        allReports.clear();
                         if (snapshots != null) {
                             for (QueryDocumentSnapshot doc : snapshots) {
                                 LostItem item = doc.toObject(LostItem.class);
-                                userReports.add(item);
+                                allReports.add(item);
                             }
-                            Log.d(TAG, "Loaded " + userReports.size() + " user reports.");
+                            Log.d(TAG, "Loaded " + allReports.size() + " user reports.");
                         }
-                        postAdapter.notifyDataSetChanged();
+
+                        // Initially show all reports
+                        filterReportsByTab(tabLayout.getSelectedTabPosition());
+
+                        // Set tab selection listener for filtering
+                        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                            @Override
+                            public void onTabSelected(TabLayout.Tab tab) {
+                                String selected = tab.getText().toString();
+
+                                userReports.clear();
+
+                                switch (selected) {
+                                    case "All":
+                                        userReports.addAll(allReports);
+                                        break;
+                                    case "Lost Items":
+                                        for (LostItem item : allReports) {
+                                            if ("lost".equalsIgnoreCase(item.getReportType())) {
+                                                userReports.add(item);
+                                            }
+                                        }
+                                        break;
+                                    case "Found Items":
+                                        for (LostItem item : allReports) {
+                                            if ("found".equalsIgnoreCase(item.getReportType())) {
+                                                userReports.add(item);
+                                            }
+                                        }
+                                        break;
+                                }
+                                postAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onTabUnselected(TabLayout.Tab tab) {}
+
+                            @Override
+                            public void onTabReselected(TabLayout.Tab tab) {}
+                        });
+
                     });
 
         } else {
@@ -155,6 +191,32 @@ public class FragmentProfile extends Fragment {
         }
     }
 
+    private void filterReportsByTab(int tabPosition) {
+        userReports.clear();
+
+        switch (tabPosition) {
+            case 0: // All
+                userReports.addAll(allReports);
+                break;
+
+            case 1: // Lost Items
+                for (LostItem item : allReports) {
+                    if ("lost".equalsIgnoreCase(item.getReportType())) {
+                        userReports.add(item);
+                    }
+                }
+                break;
+
+            case 2: // Found Items
+                for (LostItem item : allReports) {
+                    if ("found".equalsIgnoreCase(item.getReportType())) {
+                        userReports.add(item);
+                    }
+                }
+                break;
+        }
+        postAdapter.notifyDataSetChanged();
+    }
+
 
 }
-

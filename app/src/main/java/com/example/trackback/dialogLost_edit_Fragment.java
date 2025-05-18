@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -41,6 +43,8 @@ public class dialogLost_edit_Fragment extends DialogFragment {
 
     private String documentId;
 
+    private TextView itemLabel, dateLabel, timeLabel;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -49,6 +53,11 @@ public class dialogLost_edit_Fragment extends DialogFragment {
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+
+        itemLabel = view.findViewById(R.id.itemLabel);     // TextView for item label
+        dateLabel = view.findViewById(R.id.dateLabel);     // TextView for date label
+        timeLabel = view.findViewById(R.id.timeLabel);     // TextView for time label
+
 
         // Initialize UI elements
         itemLostText = view.findViewById(R.id.itemLostText);
@@ -161,6 +170,20 @@ public class dialogLost_edit_Fragment extends DialogFragment {
                         dateText.setText(documentSnapshot.getString("date"));
                         timeText.setText(documentSnapshot.getString("time"));
                         autoComplete.setText(documentSnapshot.getString("category"), false);
+                        String reportType = documentSnapshot.getString("reportType");
+                        if (reportType != null) {
+                            if (reportType.equalsIgnoreCase("Found")) {
+                                itemLabel.setText("Item Found");
+                                dateLabel.setText("Date Found");
+                                timeLabel.setText("Time Found");
+                            } else {
+                                itemLabel.setText("Item Lost");
+                                dateLabel.setText("Date Lost");
+                                timeLabel.setText("Time Lost");
+                            }
+                        }
+                        Log.d("ReportTypeCheck", "Report Type received: " + reportType);
+
                     } else {
                         Toast.makeText(getContext(), "Report not found.", Toast.LENGTH_SHORT).show();
                         dismiss();
