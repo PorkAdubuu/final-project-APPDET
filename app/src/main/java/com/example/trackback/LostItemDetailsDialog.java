@@ -1,11 +1,15 @@
 package com.example.trackback;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class LostItemDetailsDialog extends DialogFragment {
 
@@ -80,15 +85,46 @@ public class LostItemDetailsDialog extends DialogFragment {
                 .circleCrop()
                 .into((ImageView) view.findViewById(R.id.profileImageView));
 
-        // Item Image
+        // Item Image (already loaded above, but repeated here per your code)
         Glide.with(requireContext())
                 .load(lostItem.getItemImageUrl())
                 .placeholder(R.drawable.item_default)
                 .into((ImageView) view.findViewById(R.id.itemImageView));
 
+        // Find Alert Owner Button and set click listener
+        Button alertOwnerBtn = view.findViewById(R.id.alertOwnerBtn);
+        alertOwnerBtn.setOnClickListener(v -> {
+            String ownerEmail = lostItem.getEmail();
+            String reportType = lostItem.getReportType();
+            String currentUserEmail = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                    FirebaseAuth.getInstance().getCurrentUser().getEmail() : "someone";
+
+            String subject = (reportType.equalsIgnoreCase("Lost")) ?
+                    "Regarding your lost item" : "Regarding your found item";
+
+            String message = "Hello " + lostItem.getFirstName() + ",\n\n" +
+                    "I am " + currentUserEmail + ". I would like to alert you about your " +
+                    reportType.toLowerCase() + " item: " + lostItem.getItemLost() + ".\n\n" +
+                    "Please get in touch with me.\n\nThank you.";
+
+            Intent emailIntent = new Intent(Intent.ACTION_SEND);
+            emailIntent.setType("message/rfc822");
+            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{ownerEmail});
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+            emailIntent.putExtra(Intent.EXTRA_TEXT, message);
+
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+            emailIntent.putExtra(Intent.EXTRA_TEXT, message);
+
+            if (emailIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
+                startActivity(emailIntent);
+            } else {
+                Toast.makeText(requireContext(), "No email app found on this device", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setView(view)
-
                 .create();
 
         if (dialog.getWindow() != null) {

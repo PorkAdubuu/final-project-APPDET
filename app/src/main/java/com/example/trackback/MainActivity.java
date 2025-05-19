@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             String email = user.getEmail();
-                            if (email != null && email.toLowerCase().endsWith("@umak.edu.ph")) {
+                            if (email != null && (email.toLowerCase().endsWith("@umak.edu.ph") || email.toLowerCase().endsWith("@gmail.com"))) {
                                 updateUI(user);
                             } else {
                                 // Not a UMak email – sign out and show message

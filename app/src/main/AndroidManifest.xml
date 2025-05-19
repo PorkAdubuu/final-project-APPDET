@@ -19,7 +19,8 @@
             android:exported="false" />
         <activity
             android:name=".ReportfoundActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".ReportlostActivity"
             android:exported="false"
