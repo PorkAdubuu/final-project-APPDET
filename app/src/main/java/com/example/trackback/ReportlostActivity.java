@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -31,9 +29,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-
-
-
 public class ReportlostActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
@@ -42,7 +37,6 @@ public class ReportlostActivity extends AppCompatActivity {
     private Uri selectedImageUri;
     private EditText fileNameText;
     private android.app.AlertDialog loadingDialog;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +60,8 @@ public class ReportlostActivity extends AppCompatActivity {
         EditText lastNameText = findViewById(R.id.lastNameText);
         EditText phoneNumber = findViewById(R.id.phoneNumber);
 
+
+
         EditText dateText = findViewById(R.id.dateText);
         ImageButton datePickerBtn = findViewById(R.id.datePicker);
         dateText.setKeyListener(null);
@@ -81,6 +77,8 @@ public class ReportlostActivity extends AppCompatActivity {
         AutoCompleteTextView autoComplete = findViewById(R.id.category);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.dropdown_item, categories);
         autoComplete.setAdapter(adapter);
+
+
 
         datePickerBtn.setOnClickListener(v -> {
             MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
@@ -126,21 +124,31 @@ public class ReportlostActivity extends AppCompatActivity {
             firstNameText.setText("");
             lastNameText.setText("");
             phoneNumber.setText("");
+
         });
 
-        findViewById(R.id.publishBtn).setOnClickListener(v -> publishLostItem(
-                itemLostText.getText().toString(),
-                autoComplete.getText().toString(),
-                brandText.getText().toString(),
-                dateText.getText().toString(),
-                timeText.getText().toString(),
-                additionalInfoText.getText().toString(),
-                lastSeenText.getText().toString(),
-                moreInfoText.getText().toString(),
-                firstNameText.getText().toString(),
-                lastNameText.getText().toString(),
-                phoneNumber.getText().toString()
-        ));
+        findViewById(R.id.publishBtn).setOnClickListener(v -> {
+            String userEmail = "";
+            if (mAuth.getCurrentUser() != null) {
+                userEmail = mAuth.getCurrentUser().getEmail();
+            }
+
+            publishLostItem(
+                    itemLostText.getText().toString(),
+                    autoComplete.getText().toString(),
+                    brandText.getText().toString(),
+                    dateText.getText().toString(),
+                    timeText.getText().toString(),
+                    additionalInfoText.getText().toString(),
+                    lastSeenText.getText().toString(),
+                    moreInfoText.getText().toString(),
+                    firstNameText.getText().toString(),
+                    lastNameText.getText().toString(),
+                    phoneNumber.getText().toString(),
+                    userEmail  // use email from FirebaseAuth here
+            );
+        });
+
     }
 
     private void openImageChooser() {
@@ -148,6 +156,7 @@ public class ReportlostActivity extends AppCompatActivity {
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Select Image"), 101);
     }
+
     private void showLoadingDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.loading_dialog, null);
@@ -161,22 +170,20 @@ public class ReportlostActivity extends AppCompatActivity {
         }
     }
 
-
     private void dismissLoadingDialog() {
         if (loadingDialog != null && loadingDialog.isShowing()) {
             loadingDialog.dismiss();
         }
     }
 
-
-
     private void publishLostItem(String itemLost, String category, String brand, String date,
                                  String time, String additionalInfo, String lastSeen,
-                                 String moreInfo, String firstName, String lastName, String phone) {
+                                 String moreInfo, String firstName, String lastName, String phone,
+                                 String email) {  // added email param
 
         if (itemLost.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
                 time.isEmpty() || additionalInfo.isEmpty() || lastSeen.isEmpty() ||
-                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty()) {
+                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty() || email.isEmpty()) {
 
             Toast.makeText(this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
             return;
@@ -201,7 +208,7 @@ public class ReportlostActivity extends AppCompatActivity {
                             LostItem lostItem = new LostItem(
                                     itemLost, category, brand, date, time, additionalInfo,
                                     lastSeen, moreInfo, firstName, lastName, phone,
-                                    profileUrl, imageUrl, userId, "Lost"
+                                    email, profileUrl, imageUrl, userId, "Lost"
                             );
 
                             lostItem.setDocumentId(docId);
@@ -211,7 +218,7 @@ public class ReportlostActivity extends AppCompatActivity {
                                         dismissLoadingDialog();
                                         showSuccessDialog();
 
-                                        // Clear all fields
+                                        // Clear all fields except email (reset to logged user email)
                                         ((EditText) findViewById(R.id.itemLostText)).setText("");
                                         ((AutoCompleteTextView) findViewById(R.id.category)).setText("");
                                         ((EditText) findViewById(R.id.brandText)).setText("");
@@ -223,39 +230,24 @@ public class ReportlostActivity extends AppCompatActivity {
                                         ((EditText) findViewById(R.id.firstNameText)).setText("");
                                         ((EditText) findViewById(R.id.lastNameText)).setText("");
                                         ((EditText) findViewById(R.id.phoneNumber)).setText("");
-                                        ((EditText) findViewById(R.id.fileNameText)).setText("");
+
+                                        fileNameText.setText("");
                                         selectedImageUri = null;
                                     })
                                     .addOnFailureListener(e -> {
                                         dismissLoadingDialog();
-                                        Toast.makeText(this, "Failed to report item. Try again.", Toast.LENGTH_SHORT).show();
-                                        Log.e("Firestore", "Error adding document", e);
+                                        Toast.makeText(this, "Error uploading report: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                     });
 
-                        }))
-                        .addOnFailureListener(e -> {
+                        })).addOnFailureListener(e -> {
                             dismissLoadingDialog();
-                            Toast.makeText(this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         });
             } else {
                 Toast.makeText(this, "Please select an image.", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "Please log in first.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == 101 && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            selectedImageUri = data.getData();
-            String fileName = selectedImageUri.getLastPathSegment();
-            fileNameText.setText(fileName);
+            Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -264,4 +256,16 @@ public class ReportlostActivity extends AppCompatActivity {
         dialog.show(getSupportFragmentManager(), "report_success");
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 101 && resultCode == RESULT_OK && data != null) {
+            selectedImageUri = data.getData();
+            if (selectedImageUri != null) {
+                String fileName = selectedImageUri.getLastPathSegment();
+                fileNameText.setText(fileName);
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.trackback;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -42,6 +43,9 @@ public class ItemsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_items, container, false);
+
+
+
 
         recyclerView = view.findViewById(R.id.lostItemsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

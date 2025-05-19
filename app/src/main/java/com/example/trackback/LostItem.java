@@ -21,13 +21,15 @@ public class LostItem {
     private String itemImageUrl;   // Lost item image
     private Timestamp timestamp;
     private String reportType;
+    private String email;
+
 
     public LostItem() {
     }
 
     public LostItem(String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
-                    String firstName, String lastName, String phone,
+                    String firstName, String lastName, String phone, String email,
                     String profileUrl, String itemImageUrl, String userId, String reportType) {
         this.itemLost = itemLost;
         this.category = category;
@@ -40,12 +42,14 @@ public class LostItem {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
+        this.email = email;            // <--- add this line
         this.profileUrl = profileUrl;
         this.itemImageUrl = itemImageUrl;
         this.userId = userId;
         this.reportType = reportType;
         this.timestamp = Timestamp.now();
     }
+
 
     public LostItem(String documentId, String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
@@ -70,6 +74,15 @@ public class LostItem {
     }
 
     // Getters and setters...
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 
     public String getReportType() {
         return reportType;

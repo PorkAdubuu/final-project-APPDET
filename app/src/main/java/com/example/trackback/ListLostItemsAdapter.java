@@ -60,7 +60,10 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
         }
 
         holder.itemView.setOnClickListener(v -> {
-            // Optional: handle item click
+            LostItemDetailsDialog dialog = new LostItemDetailsDialog(lostItem);
+            if (context instanceof androidx.fragment.app.FragmentActivity) {
+                dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "LostItemDetailsDialog");
+            }
         });
     }
 
