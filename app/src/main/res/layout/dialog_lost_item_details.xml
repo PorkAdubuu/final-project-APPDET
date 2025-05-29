@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="20dp"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/roundercorner"
-    android:orientation="vertical">
+    android:padding="20dp">
 
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+
 
         <FrameLayout
             android:id="@+id/dialogProfileImage"
@@ -54,21 +53,25 @@
             app:layout_constraintStart_toEndOf="@+id/dialogProfileImage"
             app:layout_constraintTop_toBottomOf="@+id/accountFnameLname" />
 
-        <TextView
-            android:id="@+id/phoneText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="09123456789"
-            android:textColor="@color/blue"
-            android:layout_marginLeft="20dp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/dialogProfileImage"
-            app:layout_constraintTop_toBottomOf="@+id/useremailadd" />
+    <TextView
+        android:id="@+id/phoneText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:text="09123456789"
+        android:textColor="@color/blue"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/dialogProfileImage"
+        app:layout_constraintTop_toBottomOf="@+id/useremailadd" />
 
         <ScrollView
             android:id="@+id/scrollView2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="600dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/alertOwnerBtn"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/dialogProfileImage">
 
@@ -343,33 +346,32 @@
                     android:layout_marginBottom="10dp"
                     android:layout_weight="1"
                     android:background="@color/gray"
-                    android:paddingTop="35dp">
-                </FrameLayout>
+                    android:paddingTop="35dp"></FrameLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginBottom="5dp"
-                        android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="5dp"
+                    android:orientation="vertical">
 
 
-                        <TextView
-                            android:id="@+id/textView20"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Uploaded Image: "
-                            android:textColor="@color/gray"
-                            android:textSize="15sp" />
+                    <TextView
+                        android:id="@+id/textView20"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Uploaded Image: "
+                        android:textColor="@color/gray"
+                        android:textSize="15sp" />
 
-                        <ImageView
-                            android:id="@+id/itemImageView"
-                            android:layout_width="150dp"
-                            android:layout_height="150dp"
-                            android:scaleType="fitXY"
-                            android:src="@drawable/item_default" />
+                    <ImageView
+                        android:id="@+id/itemImageView"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/item_default" />
 
-                    </LinearLayout>
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -488,14 +490,12 @@
             android:id="@+id/alertOwnerBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Alert Owner"
             android:backgroundTint="@color/blue"
-            android:layout_marginTop="10dp"
+            android:text="Alert Owner"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
+            app:layout_constraintStart_toStartOf="parent" />
 
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

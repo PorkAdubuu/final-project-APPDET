@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -179,9 +180,9 @@ public class ReportfoundActivity extends AppCompatActivity {
 
 
     private void publishLostItem(String itemLost, String category, String brand, String date,
-                                 String time, String additionalInfo, String lastSeen,
-                                 String moreInfo, String firstName, String lastName, String phone,
-                                 String email) {  // added email param
+                                  String time, String additionalInfo, String lastSeen,
+                                  String moreInfo, String firstName, String lastName, String phone,
+                                  String email) {
 
         if (itemLost.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
                 time.isEmpty() || additionalInfo.isEmpty() || lastSeen.isEmpty() ||
@@ -217,24 +218,59 @@ public class ReportfoundActivity extends AppCompatActivity {
 
                             db.collection("lostItems").document(docId).set(lostItem)
                                     .addOnSuccessListener(aVoid -> {
-                                        dismissLoadingDialog();
-                                        showSuccessDialog();
+                                        // ✅ Create notification for Found item
+                                        NotificationModel notification = new NotificationModel(
+                                                docId,
+                                                firstName,
+                                                lastName,
+                                                profileUrl,
+                                                date,
+                                                time,
+                                                "Found",
+                                                false
+                                        );
 
-                                        // Clear all fields except email (reset to logged user email)
-                                        ((EditText) findViewById(R.id.itemLostText)).setText("");
-                                        ((AutoCompleteTextView) findViewById(R.id.category)).setText("");
-                                        ((EditText) findViewById(R.id.brandText)).setText("");
-                                        ((EditText) findViewById(R.id.dateText)).setText("");
-                                        ((EditText) findViewById(R.id.timeText)).setText("");
-                                        ((EditText) findViewById(R.id.additionalInfoText)).setText("");
-                                        ((EditText) findViewById(R.id.lastSeenText)).setText("");
-                                        ((EditText) findViewById(R.id.moreInfoText)).setText("");
-                                        ((EditText) findViewById(R.id.firstNameText)).setText("");
-                                        ((EditText) findViewById(R.id.lastNameText)).setText("");
-                                        ((EditText) findViewById(R.id.phoneNumber)).setText("");
+                                        // ✅ Send notification to all users except current user
+                                        db.collection("users").get().addOnSuccessListener(querySnapshot -> {
+                                                    for (DocumentSnapshot userDoc : querySnapshot.getDocuments()) {
+                                                        String otherUserId = userDoc.getId();
 
-                                        fileNameText.setText("");
-                                        selectedImageUri = null;
+                                                        if (!otherUserId.equals(userId)) {
+                                                            String notifId = db.collection("users")
+                                                                    .document(otherUserId)
+                                                                    .collection("notifications")
+                                                                    .document().getId();
+
+                                                            db.collection("users").document(otherUserId)
+                                                                    .collection("notifications").document(notifId)
+                                                                    .set(notification);
+                                                        }
+                                                    }
+
+                                                    dismissLoadingDialog();
+                                                    showSuccessDialog();
+
+                                                    // Clear all fields except email (reset to logged user email)
+                                                    ((EditText) findViewById(R.id.itemLostText)).setText("");
+                                                    ((AutoCompleteTextView) findViewById(R.id.category)).setText("");
+                                                    ((EditText) findViewById(R.id.brandText)).setText("");
+                                                    ((EditText) findViewById(R.id.dateText)).setText("");
+                                                    ((EditText) findViewById(R.id.timeText)).setText("");
+                                                    ((EditText) findViewById(R.id.additionalInfoText)).setText("");
+                                                    ((EditText) findViewById(R.id.lastSeenText)).setText("");
+                                                    ((EditText) findViewById(R.id.moreInfoText)).setText("");
+                                                    ((EditText) findViewById(R.id.firstNameText)).setText("");
+                                                    ((EditText) findViewById(R.id.lastNameText)).setText("");
+                                                    ((EditText) findViewById(R.id.phoneNumber)).setText("");
+
+                                                    fileNameText.setText("");
+                                                    selectedImageUri = null;
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    dismissLoadingDialog();
+                                                    Toast.makeText(this, "Error uploading notification: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                });
+
                                     })
                                     .addOnFailureListener(e -> {
                                         dismissLoadingDialog();
@@ -252,6 +288,7 @@ public class ReportfoundActivity extends AppCompatActivity {
             Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
 

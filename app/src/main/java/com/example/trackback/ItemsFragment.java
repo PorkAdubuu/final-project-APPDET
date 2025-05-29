@@ -1,6 +1,5 @@
 package com.example.trackback;
 
-import android.app.Dialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 
 import androidx.fragment.app.Fragment;
@@ -44,7 +44,12 @@ public class ItemsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_items, container, false);
 
-
+        LinearLayout backBtn = view.findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_overlay, new HomeFragment())
+                    .commit();
+        });
 
 
         recyclerView = view.findViewById(R.id.lostItemsRecyclerView);
@@ -56,20 +61,15 @@ public class ItemsFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         EditText searchEditText = view.findViewById(R.id.searchEditText);
-
         searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterBySearch(s.toString().trim());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
         });
-
 
         ImageView sortBtn = view.findViewById(R.id.sortBtn);
         sortBtn.setOnClickListener(v -> showSortBottomSheet());
@@ -80,6 +80,9 @@ public class ItemsFragment extends Fragment {
         } else {
             Log.w("Firestore", "User not authenticated");
         }
+
+
+
 
         return view;
     }
@@ -95,32 +98,25 @@ public class ItemsFragment extends Fragment {
     }
 
     private void fetchLostItemsFromFirestore() {
-        CollectionReference lostItemsRef = db.collection("lostItems");
-        lostItemsRef.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        db.collection("lostItems")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot querySnapshot = task.getResult();
-                        if (querySnapshot != null) {
-                            lostItemList.clear();
-                            allLostItems.clear();
-                            for (QueryDocumentSnapshot document : querySnapshot) {
-                                ListLostItem lostItem = document.toObject(ListLostItem.class);
-                                lostItemList.add(lostItem);
-                                allLostItems.add(lostItem);
-                            }
-                            Log.d("Firestore", "Loaded items: " + lostItemList.size());
-                            adapter.notifyDataSetChanged();
-                        } else {
-                            Log.w("Firestore", "No documents found");
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        lostItemList.clear();
+                        allLostItems.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            ListLostItem lostItem = document.toObject(ListLostItem.class);
+                            lostItemList.add(lostItem);
+                            allLostItems.add(lostItem);
                         }
+                        Log.d("Firestore", "Loaded items: " + lostItemList.size());
+                        adapter.notifyDataSetChanged();
                     } else {
                         Log.e("Firestore", "Error getting documents: ", task.getException());
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Fetch failed: ", e);
-                });
+                .addOnFailureListener(e -> Log.e("Firestore", "Fetch failed: ", e));
     }
 
     private void showSortBottomSheet() {
@@ -137,60 +133,49 @@ public class ItemsFragment extends Fragment {
             behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
-        // Category RadioButtons (existing)
-        RadioButton radioAllCategory = view.findViewById(R.id.radioAllcategory);
-        RadioButton radioGadget = view.findViewById(R.id.radioGadget);
-        RadioButton radioAccessories = view.findViewById(R.id.radioAccessories);
-        RadioButton radioPersonal = view.findViewById(R.id.radioPersonal);
-        RadioButton radioDrinkware = view.findViewById(R.id.radioDrinkware);
-        RadioButton radioSchool = view.findViewById(R.id.radioSchoolsupplies);
-        RadioButton radioClothing = view.findViewById(R.id.radioClothing);
-        RadioButton radioBag = view.findViewById(R.id.radioBag);
-        RadioButton radioOthers = view.findViewById(R.id.radioOthers);
-
+        // Category buttons
         List<RadioButton> categoryButtons = Arrays.asList(
-                radioAllCategory, radioGadget, radioAccessories, radioPersonal,
-                radioDrinkware, radioSchool, radioClothing, radioBag, radioOthers
+                view.findViewById(R.id.radioAllcategory),
+                view.findViewById(R.id.radioGadget),
+                view.findViewById(R.id.radioAccessories),
+                view.findViewById(R.id.radioPersonal),
+                view.findViewById(R.id.radioDrinkware),
+                view.findViewById(R.id.radioSchoolsupplies),
+                view.findViewById(R.id.radioClothing),
+                view.findViewById(R.id.radioBag),
+                view.findViewById(R.id.radioOthers)
         );
 
-
-
-        // ReportType RadioButtons (new)
-        RadioButton radioAllType = view.findViewById(R.id.radioAll);
-        RadioButton radioLostType = view.findViewById(R.id.radioLost);
-        RadioButton radioFoundType = view.findViewById(R.id.radioFound);
-
-        List<RadioButton> reportTypeButtons = Arrays.asList(radioAllType, radioLostType, radioFoundType);
-
-
+        // Report type buttons
+        List<RadioButton> reportTypeButtons = Arrays.asList(
+                view.findViewById(R.id.radioAll),
+                view.findViewById(R.id.radioLost),
+                view.findViewById(R.id.radioFound)
+        );
 
         Button applyBtn = view.findViewById(R.id.applyBtn);
         applyBtn.setOnClickListener(v -> {
-            // Get selected category
             String selectedCategory = null;
-            if (radioGadget.isChecked()) selectedCategory = "Gadgets";
-            else if (radioAccessories.isChecked()) selectedCategory = "Accessories";
-            else if (radioPersonal.isChecked()) selectedCategory = "Personal Belongings";
-            else if (radioDrinkware.isChecked()) selectedCategory = "Drinkware";
-            else if (radioSchool.isChecked()) selectedCategory = "School Supplies";
-            else if (radioClothing.isChecked()) selectedCategory = "Clothing";
-            else if (radioBag.isChecked()) selectedCategory = "Bags";
-            else if (radioOthers.isChecked()) selectedCategory = "Others";
+            if (((RadioButton) view.findViewById(R.id.radioGadget)).isChecked()) selectedCategory = "Gadgets";
+            else if (((RadioButton) view.findViewById(R.id.radioAccessories)).isChecked()) selectedCategory = "Accessories";
+            else if (((RadioButton) view.findViewById(R.id.radioPersonal)).isChecked()) selectedCategory = "Personal Belongings";
+            else if (((RadioButton) view.findViewById(R.id.radioDrinkware)).isChecked()) selectedCategory = "Drinkware";
+            else if (((RadioButton) view.findViewById(R.id.radioSchoolsupplies)).isChecked()) selectedCategory = "School Supplies";
+            else if (((RadioButton) view.findViewById(R.id.radioClothing)).isChecked()) selectedCategory = "Clothing";
+            else if (((RadioButton) view.findViewById(R.id.radioBag)).isChecked()) selectedCategory = "Bags";
+            else if (((RadioButton) view.findViewById(R.id.radioOthers)).isChecked()) selectedCategory = "Others";
 
-            // Get selected report type
             String selectedReportType = null;
-            if (radioLostType.isChecked()) selectedReportType = "lost";
-            else if (radioFoundType.isChecked()) selectedReportType = "found";
-            // if radioAllType is checked or nothing is selected, keep null to indicate no filter
+            if (((RadioButton) view.findViewById(R.id.radioLost)).isChecked()) selectedReportType = "lost";
+            else if (((RadioButton) view.findViewById(R.id.radioFound)).isChecked()) selectedReportType = "found";
 
-            // Filter by both criteria
+            // Filter logic
             List<ListLostItem> filteredList = new ArrayList<>();
-
             for (ListLostItem item : allLostItems) {
-                boolean matchesCategory = (selectedCategory == null) || (item.getCategory() != null && item.getCategory().equals(selectedCategory));
-                boolean matchesReportType = (selectedReportType == null) || (item.getReportType() != null && item.getReportType().equalsIgnoreCase(selectedReportType));
-
-                if (matchesCategory && matchesReportType) {
+                boolean matchCategory = selectedCategory == null || selectedCategory.equals(item.getCategory());
+                boolean matchReportType = selectedReportType == null || (item.getReportType() != null &&
+                        item.getReportType().equalsIgnoreCase(selectedReportType));
+                if (matchCategory && matchReportType) {
                     filteredList.add(item);
                 }
             }
@@ -200,22 +185,5 @@ public class ItemsFragment extends Fragment {
         });
 
         dialog.show();
-    }
-
-
-
-    // Optional: keep if you’ll reuse it in new sort logic
-    private void filterLostItemsByCategory(String category) {
-        List<ListLostItem> filteredList = new ArrayList<>();
-        if (category == null) {
-            filteredList.addAll(allLostItems);
-        } else {
-            for (ListLostItem item : allLostItems) {
-                if (item.getCategory() != null && item.getCategory().equals(category)) {
-                    filteredList.add(item);
-                }
-            }
-        }
-        adapter.updateList(filteredList);
     }
 }

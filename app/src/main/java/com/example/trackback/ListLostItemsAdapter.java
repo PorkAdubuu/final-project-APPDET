@@ -60,7 +60,8 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
         }
 
         holder.itemView.setOnClickListener(v -> {
-            LostItemDetailsDialog dialog = new LostItemDetailsDialog(lostItem);
+            LostItemDetailsDialog dialog = LostItemDetailsDialog.newInstance(lostItem);
+
             if (context instanceof androidx.fragment.app.FragmentActivity) {
                 dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "LostItemDetailsDialog");
             }

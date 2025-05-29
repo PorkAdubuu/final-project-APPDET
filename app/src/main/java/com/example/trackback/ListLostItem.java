@@ -1,6 +1,8 @@
 package com.example.trackback;
 
-public class ListLostItem {
+import java.io.Serializable;
+
+public class ListLostItem implements Serializable {
 
     private String documentId;
     private String itemLost;

@@ -2,7 +2,6 @@ package com.example.trackback;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,13 +17,33 @@ import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.io.Serializable;
 
 public class LostItemDetailsDialog extends DialogFragment {
 
     private ListLostItem lostItem;
 
-    public LostItemDetailsDialog(ListLostItem item) {
-        this.lostItem = item;
+    public LostItemDetailsDialog() {
+    }
+
+    // ✅ New way: Accept a full LostItem object
+    public static LostItemDetailsDialog newInstance(ListLostItem item) {
+        LostItemDetailsDialog dialog = new LostItemDetailsDialog();
+        Bundle args = new Bundle();
+        args.putSerializable("lostItem", item);
+        dialog.setArguments(args);
+        return dialog;
+    }
+
+    // ✅ Existing way: Accept a documentId string
+    public static LostItemDetailsDialog newInstance(String documentId) {
+        LostItemDetailsDialog dialog = new LostItemDetailsDialog();
+        Bundle args = new Bundle();
+        args.putString("documentId", documentId);
+        dialog.setArguments(args);
+        return dialog;
     }
 
     @NonNull
@@ -32,6 +51,46 @@ public class LostItemDetailsDialog extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_lost_item_details, null);
 
+        if (getArguments() != null) {
+            if (getArguments().containsKey("lostItem")) {
+                lostItem = (ListLostItem) getArguments().getSerializable("lostItem");
+                setupDialogView(view);
+            } else if (getArguments().containsKey("documentId")) {
+                String documentId = getArguments().getString("documentId");
+                fetchLostItemData(documentId, view);
+            }
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(view)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        return dialog;
+    }
+
+    private void fetchLostItemData(String documentId, View view) {
+        FirebaseFirestore.getInstance()
+                .collection("LostItems")
+                .document(documentId)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        lostItem = snapshot.toObject(ListLostItem.class);
+                        if (lostItem != null) {
+                            setupDialogView(view);
+                        }
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(), "Failed to load item details", Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private void setupDialogView(View view) {
         boolean isFound = lostItem.getReportType().equalsIgnoreCase("Found");
 
         ImageView itemImageView = view.findViewById(R.id.itemImageView);
@@ -45,53 +104,33 @@ public class LostItemDetailsDialog extends DialogFragment {
             previewDialog.show(getParentFragmentManager(), "fullImagePreview");
         });
 
-        // Labels and values
-        TextView itemLabel = view.findViewById(R.id.itemLabel);
-        TextView itemLostText = view.findViewById(R.id.itemLostText);
-        TextView dateLabel = view.findViewById(R.id.dateLabel);
-        TextView dateText = view.findViewById(R.id.dateText);
-        TextView timeLabel = view.findViewById(R.id.timeLabel);
-        TextView timeText = view.findViewById(R.id.timeText);
-        TextView locationLabel = view.findViewById(R.id.locationLabel);
-        TextView lastSeenText = view.findViewById(R.id.lastSeenText);
+        ((TextView) view.findViewById(R.id.itemLabel)).setText("Item " + (isFound ? "Found:" : "Lost:"));
+        ((TextView) view.findViewById(R.id.itemLostText)).setText(lostItem.getItemLost());
 
-        itemLabel.setText("Item " + (isFound ? "Found:" : "Lost:"));
-        itemLostText.setText(lostItem.getItemLost());
+        ((TextView) view.findViewById(R.id.dateLabel)).setText("Date " + (isFound ? "Found:" : "Lost:"));
+        ((TextView) view.findViewById(R.id.dateText)).setText(lostItem.getDate());
 
-        dateLabel.setText("Date " + (isFound ? "Found:" : "Lost:"));
-        dateText.setText(lostItem.getDate());
+        ((TextView) view.findViewById(R.id.timeLabel)).setText("Time " + (isFound ? "Found:" : "Lost:"));
+        ((TextView) view.findViewById(R.id.timeText)).setText(lostItem.getTime());
 
-        timeLabel.setText("Time " + (isFound ? "Found:" : "Lost:"));
-        timeText.setText(lostItem.getTime());
+        ((TextView) view.findViewById(R.id.locationLabel)).setText(isFound ? "Found At:" : "Lost At:");
+        ((TextView) view.findViewById(R.id.lastSeenText)).setText(lostItem.getLastSeen());
 
-        locationLabel.setText(isFound ? "Found At:" : "Lost At:");
-        lastSeenText.setText(lostItem.getLastSeen());
-
-        // Direct display fields
         ((TextView) view.findViewById(R.id.categoryText)).setText(lostItem.getCategory());
         ((TextView) view.findViewById(R.id.brandText)).setText(lostItem.getBrand());
         ((TextView) view.findViewById(R.id.additionalInfoText)).setText(lostItem.getAdditionalInfo());
         ((TextView) view.findViewById(R.id.moreInfoText)).setText(lostItem.getMoreInfo());
 
-        // Account info
         ((TextView) view.findViewById(R.id.accountFnameLname)).setText(lostItem.getFirstName() + " " + lostItem.getLastName());
         ((TextView) view.findViewById(R.id.useremailadd)).setText(lostItem.getEmail());
         ((TextView) view.findViewById(R.id.phoneText)).setText(lostItem.getPhone());
 
-        // Profile Image
         Glide.with(requireContext())
                 .load(lostItem.getProfileUrl())
                 .placeholder(R.drawable.def_prof)
                 .circleCrop()
                 .into((ImageView) view.findViewById(R.id.profileImageView));
 
-        // Item Image (already loaded above, but repeated here per your code)
-        Glide.with(requireContext())
-                .load(lostItem.getItemImageUrl())
-                .placeholder(R.drawable.item_default)
-                .into((ImageView) view.findViewById(R.id.itemImageView));
-
-        // Find Alert Owner Button and set click listener
         Button alertOwnerBtn = view.findViewById(R.id.alertOwnerBtn);
         alertOwnerBtn.setOnClickListener(v -> {
             String ownerEmail = lostItem.getEmail();
@@ -113,24 +152,11 @@ public class LostItemDetailsDialog extends DialogFragment {
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
             emailIntent.putExtra(Intent.EXTRA_TEXT, message);
 
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            emailIntent.putExtra(Intent.EXTRA_TEXT, message);
-
             if (emailIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
                 startActivity(emailIntent);
             } else {
                 Toast.makeText(requireContext(), "No email app found on this device", Toast.LENGTH_SHORT).show();
             }
         });
-
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setView(view)
-                .create();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        return dialog;
     }
 }
