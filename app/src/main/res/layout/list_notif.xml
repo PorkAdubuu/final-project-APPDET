@@ -1,0 +1,109 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="6dp"
+    android:layout_margin="6dp"
+    android:background="@drawable/bg_item_card"
+    android:elevation="4dp">
+
+    <!-- Top-right label -->
+    <TextView
+        android:id="@+id/typeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Type: Lost"
+        android:textColor="@color/blue"
+        android:textSize="10sp"
+        android:textStyle="italic"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:background="@color/semiblue"
+        android:padding="2dp" />
+
+    <!-- Main content in horizontal layout -->
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/typeText"
+        android:layout_marginTop="4dp">
+
+        <FrameLayout
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/profile_border">
+
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/fullnameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fname Lname"
+                android:fontFamily="@font/montserrat_extrabold"
+                android:textStyle="bold"
+                android:textColor="@color/blue"
+                android:textSize="13sp"
+                android:layout_marginBottom="2dp" />
+
+            <TextView
+                android:id="@+id/itemText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Posted a new lost/found item: ITEMNAME"
+                android:textColor="#555555"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/dateAndTimeext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="May 7, 2025 | 5:47 PM"
+                android:textColor="#555555"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/viewPostBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/contentLayout"
+        android:layout_alignParentEnd="true"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            android:layout_gravity="center"
+            android:textColor="@color/blue"
+            android:text="View Post"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/imageView17"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:scaleType="fitXY"
+            app:srcCompat="@drawable/arrowright_ic" />
+    </LinearLayout>
+</RelativeLayout>
