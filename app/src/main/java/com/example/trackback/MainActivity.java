@@ -22,6 +22,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.AuthCredential;
 
+// ✅ Insert for Notifications
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
@@ -36,9 +44,19 @@ public class MainActivity extends AppCompatActivity {
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
-
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+        // SUBSCRIBE USER TO TOPIC "allUsers" (for notifications)
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String token = task.getResult();
+                        Log.d("FCM", "Token: " + token);
+                    } else {
+                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                    }
+                });
 
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -98,7 +116,10 @@ public class MainActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             String email = user.getEmail();
-                            if (email != null && (email.toLowerCase().endsWith("@umak.edu.ph") || email.toLowerCase().endsWith("@gmail.com"))) {
+                            //  FIXED: Remove the empty string check
+                            if (email != null && email.toLowerCase().endsWith("@umak.edu.ph")) {
+                                //  Save user data to Firestore
+                                saveUserToFirestore(user);
                                 updateUI(user);
                             } else {
                                 // Not a UMak email – sign out and show message
@@ -113,6 +134,54 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    //NEW METHOD: Save user to Firestore
+    // NEW METHOD: Save user to Firestore
+    private void saveUserToFirestore(FirebaseUser user) {
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("fullName", user.getDisplayName());
+        userData.put("email", user.getEmail());
+        userData.put("profileImageUrl", user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "");
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Save the basic user info first
+        db.collection("users")
+                .document(user.getUid())
+                .set(userData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("MainActivity", "User saved to Firestore");
+
+                    // Now get and save the FCM token
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnCompleteListener(task -> {
+                                if (!task.isSuccessful()) {
+                                    Log.w("MainActivity", "Fetching FCM token failed", task.getException());
+                                    return;
+                                }
+
+                                String token = task.getResult();
+                                db.collection("users")
+                                        .document(user.getUid())
+                                        .update("fcmToken", token)
+                                        .addOnSuccessListener(v -> {
+                                            Log.d("MainActivity", "FCM token saved");
+
+                                            // Subscribe to topic for global notifications
+                                            FirebaseMessaging.getInstance().subscribeToTopic("allUsers")
+                                                    .addOnCompleteListener(subTask -> {
+                                                        if (subTask.isSuccessful()) {
+                                                            Log.d("FCM", "Subscribed to allUsers topic!");
+                                                        } else {
+                                                            Log.w("FCM", "Failed to subscribe to allUsers topic", subTask.getException());
+                                                        }
+                                                    });
+                                        })
+                                        .addOnFailureListener(e -> Log.e("MainActivity", "Error saving FCM token", e));
+                            });
+                })
+                .addOnFailureListener(e -> Log.e("MainActivity", "Error saving user", e));
     }
 
     private void updateUI(FirebaseUser user) {

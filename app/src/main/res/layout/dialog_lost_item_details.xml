@@ -10,7 +10,6 @@
 
 
 
-
         <FrameLayout
             android:id="@+id/dialogProfileImage"
             android:layout_width="85dp"
@@ -70,7 +69,7 @@
             android:layout_height="600dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            app:layout_constraintBottom_toTopOf="@+id/alertOwnerBtn"
+            app:layout_constraintBottom_toTopOf="@+id/messageBtn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/dialogProfileImage">
@@ -486,16 +485,17 @@
 
         </ScrollView>
 
-        <Button
-            android:id="@+id/alertOwnerBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/blue"
-            android:text="Alert Owner"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
+    <Button
+        android:id="@+id/messageBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/blue"
+        android:text="Message"
+        android:textColor="@color/white"
+        android:fontFamily="@font/montserrat_extrabold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> <!-- For Android 13+ -->
+    <!-- Request notification permission for Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,37 +19,96 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TrackBack"
         tools:targetApi="31">
-        <activity
-            android:name=".LostItemDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ReportfoundActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustPan"/>
-        <activity
-            android:name=".ReportlostActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustPan" />
+
+        <!-- 🔹 Splash screen (launcher) -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- MainActivity is where the Google Sign-In happens -->
+        </activity>
+
+        <!-- 🔹 MainActivity (login / Google Sign-in) -->
         <activity
             android:name=".MainActivity"
             android:configChanges="fontScale"
             android:exported="true"
-            android:screenOrientation="portrait" /> <!-- HomeActivity or other activities you want to navigate to after successful login -->
+            android:screenOrientation="portrait" />
+
+        <!-- 🔹 HomeActivity (main app dashboard after login) -->
         <activity
             android:name=".HomeActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
+
+
+        <!-- 🔹 ArchivedChatsActivity (for viewing archived chats) -->
+        <!-- 🔹 ArchiveActivity (for viewing archived chats) -->
+        <activity
+            android:name=".ArchiveActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MessagesActivity" />
+
+        <!-- 🔹 BlockedAccountsActivity (for viewing blocked accounts) -->
+        <activity
+            android:name=".BlockedAccountsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MessagesActivity" />
+
+        <!-- 🔹 Report activities -->
+        <activity
+            android:name=".ReportlostActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ReportfoundActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+
+        <!-- 🔹 Lost item details -->
+        <activity
+            android:name=".LostItemDetailActivity"
+            android:exported="false" />
+
+        <!-- 🔹 Chat and Messages -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+
+        <activity
+            android:name=".MessagesActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+
+        <!-- Firebase Messaging Service -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Default notification icon and color -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_message" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/blue" />
+
+
+
     </application>
 
 </manifest>

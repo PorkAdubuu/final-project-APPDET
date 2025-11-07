@@ -1,5 +1,6 @@
 package com.example.trackback;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -49,9 +53,6 @@ public class FragmentProfile extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_profile, container, false);
-
-
-
     }
 
     @Override
@@ -64,7 +65,7 @@ public class FragmentProfile extends Fragment {
                     .replace(R.id.frame_overlay, new HomeFragment())
                     .commit();
         });
-        
+
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
 
@@ -75,31 +76,9 @@ public class FragmentProfile extends Fragment {
         postRecyclerView = view.findViewById(R.id.itemsRecyclerView);
         tabLayout = view.findViewById(R.id.tab_layout);
 
-        View logoutBtn = view.findViewById(R.id.logoutBtn);
-
-        logoutBtn.setOnClickListener(v -> {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Log out")
-                    .setMessage("Are you sure you want to log out?")
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        // Configure Google Sign-In client (same as in MainActivity)
-                        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                .requestIdToken(getString(R.string.client_id))  // use your client ID
-                                .requestEmail()
-                                .build();
-
-                        GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
-
-                        // Sign out from Firebase and Google
-                        FirebaseAuth.getInstance().signOut();
-                        googleSignInClient.signOut().addOnCompleteListener(task -> {
-                            requireActivity().finish();
-                            startActivity(new android.content.Intent(requireContext(), MainActivity.class));
-                        });
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                    .show();
-        });
+        // Setup hamburger menu button
+        ImageView menuButton = view.findViewById(R.id.menuButton);
+        menuButton.setOnClickListener(v -> showBottomSheetMenu());
 
         // Setup RecyclerView
         postRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -107,6 +86,24 @@ public class FragmentProfile extends Fragment {
         userReports = new ArrayList<>();
         postAdapter = new PostAdapter(requireContext(), userReports);
         postRecyclerView.setAdapter(postAdapter);
+
+        // Set tab listener FIRST before loading data
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int position = tab.getPosition();
+                Log.d(TAG, "Tab selected: " + position);
+                filterReportsByTab(position);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                filterReportsByTab(tab.getPosition());
+            }
+        });
 
         if (user != null) {
             Log.d(TAG, "User is logged in: " + user.getUid());
@@ -125,7 +122,7 @@ public class FragmentProfile extends Fragment {
             }
 
             emailText.setText(user.getEmail() != null ? user.getEmail() : "No email available");
-            phoneNumberText.setText(user.getPhoneNumber() != null ? user.getPhoneNumber() : "No phone number");
+            phoneNumberText.setVisibility(View.GONE);
 
             if (user.getPhotoUrl() != null) {
                 Glide.with(this).load(user.getPhotoUrl()).circleCrop().into(profileImageView);
@@ -151,50 +148,13 @@ public class FragmentProfile extends Fragment {
                             for (QueryDocumentSnapshot doc : snapshots) {
                                 LostItem item = doc.toObject(LostItem.class);
                                 allReports.add(item);
+                                Log.d(TAG, "Loaded item - reportType: '" + item.getReportType() + "'");
                             }
-                            Log.d(TAG, "Loaded " + allReports.size() + " user reports.");
+                            Log.d(TAG, "Total loaded: " + allReports.size() + " user reports");
                         }
 
-                        // Initially show all reports
+                        // Filter based on currently selected tab
                         filterReportsByTab(tabLayout.getSelectedTabPosition());
-
-                        // Set tab selection listener for filtering
-                        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-                            @Override
-                            public void onTabSelected(TabLayout.Tab tab) {
-                                String selected = tab.getText().toString();
-
-                                userReports.clear();
-
-                                switch (selected) {
-                                    case "All":
-                                        userReports.addAll(allReports);
-                                        break;
-                                    case "Lost Items":
-                                        for (LostItem item : allReports) {
-                                            if ("lost".equalsIgnoreCase(item.getReportType())) {
-                                                userReports.add(item);
-                                            }
-                                        }
-                                        break;
-                                    case "Found Items":
-                                        for (LostItem item : allReports) {
-                                            if ("found".equalsIgnoreCase(item.getReportType())) {
-                                                userReports.add(item);
-                                            }
-                                        }
-                                        break;
-                                }
-                                postAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void onTabUnselected(TabLayout.Tab tab) {}
-
-                            @Override
-                            public void onTabReselected(TabLayout.Tab tab) {}
-                        });
-
                     });
 
         } else {
@@ -203,31 +163,94 @@ public class FragmentProfile extends Fragment {
     }
 
     private void filterReportsByTab(int tabPosition) {
+        Log.d(TAG, "=== FILTERING Tab: " + tabPosition + " ===");
+        Log.d(TAG, "Total items available: " + allReports.size());
+
         userReports.clear();
 
         switch (tabPosition) {
             case 0: // All
                 userReports.addAll(allReports);
+                Log.d(TAG, "Showing ALL: " + userReports.size() + " items");
                 break;
 
-            case 1: // Lost Items
+            case 1: // Lost
                 for (LostItem item : allReports) {
-                    if ("lost".equalsIgnoreCase(item.getReportType())) {
+                    String reportType = item.getReportType();
+                    if (reportType != null && reportType.trim().equalsIgnoreCase("lost")) {
                         userReports.add(item);
                     }
                 }
+                Log.d(TAG, "Showing LOST: " + userReports.size() + " items");
                 break;
 
-            case 2: // Found Items
+            case 2: // Found
                 for (LostItem item : allReports) {
-                    if ("found".equalsIgnoreCase(item.getReportType())) {
+                    String reportType = item.getReportType();
+                    if (reportType != null && reportType.trim().equalsIgnoreCase("found")) {
                         userReports.add(item);
                     }
                 }
+                Log.d(TAG, "Showing FOUND: " + userReports.size() + " items");
                 break;
         }
+
+        Log.d(TAG, "Notifying adapter with " + userReports.size() + " items");
         postAdapter.notifyDataSetChanged();
+
+        // Scroll to top after filtering
+        if (postRecyclerView != null) {
+            postRecyclerView.scrollToPosition(0);
+        }
     }
 
+    private void showBottomSheetMenu() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
+        View bottomSheetView = LayoutInflater.from(getContext()).inflate(R.layout.account_menu, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
 
+        LinearLayout menuArchive = bottomSheetView.findViewById(R.id.archivedChatsOption);
+        LinearLayout menuBlocked = bottomSheetView.findViewById(R.id.blockedAccountsOption);
+        LinearLayout menuLogout = bottomSheetView.findViewById(R.id.LogoutOption);
+
+        menuArchive.setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            Intent intent = new Intent(getContext(), ArchiveActivity.class);
+            startActivity(intent);
+        });
+
+        menuBlocked.setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            Intent intent = new Intent(getContext(), BlockedAccountsActivity.class);
+            startActivity(intent);
+        });
+
+        menuLogout.setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            showLogoutDialog();
+        });
+
+        bottomSheetDialog.show();
+    }
+
+    private void showLogoutDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Log out")
+                .setMessage("Are you sure you want to log out?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestIdToken(getString(R.string.client_id))
+                            .requestEmail()
+                            .build();
+                    GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
+
+                    FirebaseAuth.getInstance().signOut();
+                    googleSignInClient.signOut().addOnCompleteListener(task -> {
+                        requireActivity().finish();
+                        startActivity(new Intent(requireContext(), MainActivity.class));
+                    });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
 }

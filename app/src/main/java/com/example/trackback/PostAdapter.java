@@ -42,11 +42,22 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         LostItem item = lostItemList.get(position);
 
-        holder.itemLostText.setText("Item: " + item.getItemLost());
+        String reportType = item.getReportType();
+        boolean isFound = reportType != null && reportType.equalsIgnoreCase("Found");
+
+        // Update labels based on report type
+        if (isFound) {
+            holder.itemLostText.setText("Item Found: " + item.getItemLost());
+            holder.dateText.setText("Date Found: " + item.getDate());
+            holder.timeText.setText("Time Found: " + item.getTime());
+            holder.locationText.setText("Found At: " + item.getLastSeen());
+        } else {
+            holder.itemLostText.setText("Item Lost: " + item.getItemLost());
+            holder.dateText.setText("Date Lost: " + item.getDate());
+            holder.timeText.setText("Time Lost: " + item.getTime());
+            holder.locationText.setText("Lost At: " + item.getLastSeen());
+        }
         holder.categoryText.setText("Category: " + item.getCategory());
-        holder.dateText.setText("Date Lost: " + item.getDate());
-        holder.timeText.setText("Time Lost: " + item.getTime());
-        holder.locationText.setText("Last Seen: " + item.getLastSeen());
 
         Timestamp ts = item.getTimestamp();
         if (ts != null) {

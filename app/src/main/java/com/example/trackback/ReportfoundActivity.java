@@ -32,9 +32,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-
-
-
 public class ReportfoundActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
@@ -44,6 +41,7 @@ public class ReportfoundActivity extends AppCompatActivity {
     private EditText fileNameText;
     private android.app.AlertDialog loadingDialog;
 
+    private String status;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,6 +155,7 @@ public class ReportfoundActivity extends AppCompatActivity {
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Select Image"), 101);
     }
+
     private void showLoadingDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.loading_dialog, null);
@@ -170,19 +169,16 @@ public class ReportfoundActivity extends AppCompatActivity {
         }
     }
 
-
     private void dismissLoadingDialog() {
         if (loadingDialog != null && loadingDialog.isShowing()) {
             loadingDialog.dismiss();
         }
     }
 
-
-
     private void publishLostItem(String itemLost, String category, String brand, String date,
-                                  String time, String additionalInfo, String lastSeen,
-                                  String moreInfo, String firstName, String lastName, String phone,
-                                  String email) {
+                                 String time, String additionalInfo, String lastSeen,
+                                 String moreInfo, String firstName, String lastName, String phone,
+                                 String email) {
 
         if (itemLost.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
                 time.isEmpty() || additionalInfo.isEmpty() || lastSeen.isEmpty() ||
@@ -218,39 +214,53 @@ public class ReportfoundActivity extends AppCompatActivity {
 
                             db.collection("lostItems").document(docId).set(lostItem)
                                     .addOnSuccessListener(aVoid -> {
-                                        // ✅ Create notification for Found item
+                                        // Create notification for Found item
                                         NotificationModel notification = new NotificationModel(
-                                                docId,
-                                                firstName,
-                                                lastName,
-                                                profileUrl,
-                                                date,
-                                                time,
-                                                "Found",
-                                                false
+                                                docId,           // documentId - the lost item document ID
+                                                firstName,       // fname
+                                                lastName,        // lastName
+                                                profileUrl,      // profileUrl - poster's profile image
+                                                date,           // date
+                                                time,           // time
+                                                "Found",        // reportType
+                                                false,           // read status
+                                                "active"
                                         );
 
-                                        // ✅ Send notification to all users except current user
+
+
+                                        // Send notification to all users except current user
                                         db.collection("users").get().addOnSuccessListener(querySnapshot -> {
                                                     for (DocumentSnapshot userDoc : querySnapshot.getDocuments()) {
                                                         String otherUserId = userDoc.getId();
 
                                                         if (!otherUserId.equals(userId)) {
+                                                            // Generate notification document ID
                                                             String notifId = db.collection("users")
                                                                     .document(otherUserId)
                                                                     .collection("notifications")
                                                                     .document().getId();
 
+                                                            // Set the notification document ID in the model
+                                                            notification.setNotificationDocId(notifId);
+
+                                                            // Save notification to user's notifications subcollection
                                                             db.collection("users").document(otherUserId)
                                                                     .collection("notifications").document(notifId)
-                                                                    .set(notification);
+                                                                    .set(notification)
+                                                                    .addOnSuccessListener(aVoid2 -> {
+                                                                        Log.d("Notification", "Notification sent to user: " + otherUserId);
+                                                                    })
+                                                                    .addOnFailureListener(e -> {
+                                                                        Log.e("Notification", "Failed to send notification to user: " + otherUserId, e);
+                                                                    });
                                                         }
                                                     }
 
                                                     dismissLoadingDialog();
                                                     showSuccessDialog();
 
-                                                    // Clear all fields except email (reset to logged user email)
+                                                    // Clear all fields
                                                     ((EditText) findViewById(R.id.itemLostText)).setText("");
                                                     ((AutoCompleteTextView) findViewById(R.id.category)).setText("");
                                                     ((EditText) findViewById(R.id.brandText)).setText("");
@@ -268,9 +278,9 @@ public class ReportfoundActivity extends AppCompatActivity {
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     dismissLoadingDialog();
-                                                    Toast.makeText(this, "Error uploading notification: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                    Log.e("Notification", "Error getting users for notifications", e);
+                                                    Toast.makeText(this, "Error sending notifications: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                                 });
-
                                     })
                                     .addOnFailureListener(e -> {
                                         dismissLoadingDialog();
@@ -290,9 +300,6 @@ public class ReportfoundActivity extends AppCompatActivity {
     }
 
 
-
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -308,5 +315,4 @@ public class ReportfoundActivity extends AppCompatActivity {
         report_success_dialog dialog = new report_success_dialog();
         dialog.show(getSupportFragmentManager(), "report_success");
     }
-
 }

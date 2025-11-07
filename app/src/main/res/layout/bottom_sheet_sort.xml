@@ -1,281 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottomSheetContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/rounded_top_corners"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:fillViewport="true">
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="20dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <!-- Header -->
         <TextView
             android:id="@+id/textView34"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sort By:"
             android:textColor="@color/blue"
-
             android:fontFamily="@font/montserrat_extrabold"
             android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_marginBottom="12dp" />
 
+        <!-- Item Type Section -->
         <TextView
             android:id="@+id/textView35"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:text="Item Type"
             android:textColor="@color/black"
             android:textSize="15sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView34" />
+            android:textStyle="bold" />
 
-
-        <RadioGroup
-            android:id="@+id/radioreportType"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/radioreportTypeContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="10dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView35">
+            android:layout_marginTop="8dp"
+            android:gravity="center">
 
             <RadioButton
                 android:id="@+id/radioAll"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/radiobutton_selector"
-                android:layout_marginRight="5dp"
-                android:button="@null"
-                android:paddingRight="30dp"
-                android:paddingLeft="30dp"
-                android:text="All"
-                android:textColor="@color/radio_text_color"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:textSize="13sp" />
+                style="@style/CustomRadioButton"
+                android:text="All" />
 
             <RadioButton
                 android:id="@+id/radioLost"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/radiobutton_selector"
-                android:layout_marginRight="5dp"
-                android:button="@null"
-                android:paddingRight="30dp"
-                android:paddingLeft="30dp"
-                android:text="Lost"
-                android:textColor="@color/radio_text_color"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:textSize="13sp" />
+                style="@style/CustomRadioButton"
+                android:text="Lost" />
 
             <RadioButton
                 android:id="@+id/radioFound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:paddingRight="30dp"
-                android:paddingLeft="30dp"
-                android:text="Found"
-                android:textColor="@color/radio_text_color"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:textSize="13sp" />
+                style="@style/CustomRadioButton"
+                android:text="Found" />
+        </LinearLayout>
 
-
-        </RadioGroup>
-
+        <!-- Category Section -->
         <TextView
             android:id="@+id/textView31"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Category"
-            android:layout_marginTop="20dp"
             android:textColor="@color/black"
             android:textSize="15sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/radioreportType" />
+            android:layout_marginTop="20dp" />
 
+        <!-- Category Radio Buttons -->
+        <LinearLayout
+            android:id="@+id/constraintLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp">
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <RadioButton
+                    android:id="@+id/radioAllcategory"
+                    style="@style/CustomRadioButton"
+                    android:text="All" />
+
+                <RadioButton
+                    android:id="@+id/radioGadget"
+                    style="@style/CustomRadioButton"
+                    android:text="Gadgets" />
+
+                <RadioButton
+                    android:id="@+id/radioAccessories"
+                    style="@style/CustomRadioButton"
+                    android:text="Accessories" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <RadioButton
+                    android:id="@+id/radioPersonal"
+                    style="@style/CustomRadioButton"
+                    android:text="Personal Belongings" />
+
+                <RadioButton
+                    android:id="@+id/radioDrinkware"
+                    style="@style/CustomRadioButton"
+                    android:text="Drinkware" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <RadioButton
+                    android:id="@+id/radioSchoolsupplies"
+                    style="@style/CustomRadioButton"
+                    android:text="School Supplies" />
+
+                <RadioButton
+                    android:id="@+id/radioClothing"
+                    style="@style/CustomRadioButton"
+                    android:text="Clothing" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioBag"
+                    style="@style/CustomRadioButton"
+                    android:text="Bags" />
+
+                <RadioButton
+                    android:id="@+id/radioOthers"
+                    style="@style/CustomRadioButton"
+                    android:text="Others" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Apply Button -->
         <Button
             android:id="@+id/applyBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Apply"
-            android:layout_marginTop="20dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
             android:backgroundTint="@color/blue"
-            android:paddingLeft="40dp"
-            android:paddingRight="40dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+            android:paddingStart="40dp"
+            android:paddingEnd="40dp" />
 
-
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/constraintLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView31">
-
-            <RadioButton
-                android:id="@+id/radioAllcategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="All"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <RadioButton
-                android:id="@+id/radioGadget"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Gadgets"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toEndOf="@+id/radioAllcategory"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <RadioButton
-                android:id="@+id/radioAccessories"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Accessories"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toEndOf="@+id/radioGadget"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <RadioButton
-                android:id="@+id/radioPersonal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Personal Belongings"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/radioAllcategory" />
-
-            <RadioButton
-                android:id="@+id/radioDrinkware"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Drinkware"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toEndOf="@+id/radioPersonal"
-                app:layout_constraintTop_toTopOf="@+id/radioPersonal" />
-
-            <RadioButton
-                android:id="@+id/radioSchoolsupplies"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="School Supplies"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/radioPersonal" />
-
-            <RadioButton
-                android:id="@+id/radioClothing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Clothing"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toEndOf="@+id/radioSchoolsupplies"
-                app:layout_constraintTop_toTopOf="@+id/radioSchoolsupplies" />
-
-            <RadioButton
-                android:id="@+id/radioBag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Bags"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/radioSchoolsupplies" />
-
-            <RadioButton
-                android:id="@+id/radioOthers"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/radiobutton_selector"
-                android:button="@null"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:text="Others"
-                android:textColor="@color/radio_text_color"
-                android:textSize="13sp"
-                app:layout_constraintStart_toEndOf="@+id/radioBag"
-                app:layout_constraintTop_toTopOf="@+id/radioBag" />
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>

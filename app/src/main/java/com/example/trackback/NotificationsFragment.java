@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -27,7 +26,6 @@ public class NotificationsFragment extends Fragment {
     private NotificationAdapter adapter;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
-    private Button clearNotifBtn;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,9 +37,6 @@ public class NotificationsFragment extends Fragment {
         notificationList = new ArrayList<>();
         adapter = new NotificationAdapter(getContext(), notificationList);
         notificationRecyclerView.setAdapter(adapter);
-
-        clearNotifBtn = view.findViewById(R.id.clearNotifBtn);
-        clearNotifBtn.setOnClickListener(v -> clearAllNotifications());
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -67,11 +62,10 @@ public class NotificationsFragment extends Fragment {
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    notificationList.clear();
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         NotificationModel notif = doc.toObject(NotificationModel.class);
                         if (notif != null) {
-                            notif.setNotificationDocId(doc.getId());  // store Firestore notification doc ID here
+                            notif.setNotificationDocId(doc.getId());
                             notificationList.add(notif);
                         }
                     }
@@ -81,26 +75,4 @@ public class NotificationsFragment extends Fragment {
                         Toast.makeText(getContext(), "Failed to load notifications", Toast.LENGTH_SHORT).show()
                 );
     }
-
-    private void clearAllNotifications() {
-        String userId = mAuth.getCurrentUser().getUid();
-        db.collection("users")
-                .document(userId)
-                .collection("notifications")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    // batch delete all notifications
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        doc.getReference().delete();
-                    }
-                    notificationList.clear();
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(getContext(), "All notifications cleared", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to clear notifications", Toast.LENGTH_SHORT).show()
-                );
-    }
-
-
 }

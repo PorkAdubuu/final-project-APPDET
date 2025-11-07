@@ -19,16 +19,14 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.Serializable;
-
 public class LostItemDetailsDialog extends DialogFragment {
 
     private ListLostItem lostItem;
 
     public LostItemDetailsDialog() {
+        // Required empty public constructor
     }
 
-    // ✅ New way: Accept a full LostItem object
     public static LostItemDetailsDialog newInstance(ListLostItem item) {
         LostItemDetailsDialog dialog = new LostItemDetailsDialog();
         Bundle args = new Bundle();
@@ -37,7 +35,6 @@ public class LostItemDetailsDialog extends DialogFragment {
         return dialog;
     }
 
-    // ✅ Existing way: Accept a documentId string
     public static LostItemDetailsDialog newInstance(String documentId) {
         LostItemDetailsDialog dialog = new LostItemDetailsDialog();
         Bundle args = new Bundle();
@@ -74,7 +71,7 @@ public class LostItemDetailsDialog extends DialogFragment {
 
     private void fetchLostItemData(String documentId, View view) {
         FirebaseFirestore.getInstance()
-                .collection("LostItems")
+                .collection("lostItems")
                 .document(documentId)
                 .get()
                 .addOnSuccessListener(snapshot -> {
@@ -91,7 +88,13 @@ public class LostItemDetailsDialog extends DialogFragment {
     }
 
     private void setupDialogView(View view) {
-        boolean isFound = lostItem.getReportType().equalsIgnoreCase("Found");
+        if (lostItem == null) {
+            Toast.makeText(requireContext(), "Error: Item data not loaded", Toast.LENGTH_SHORT).show();
+            dismiss();
+            return;
+        }
+
+        boolean isFound = lostItem.getReportType() != null && lostItem.getReportType().equalsIgnoreCase("Found");
 
         ImageView itemImageView = view.findViewById(R.id.itemImageView);
         Glide.with(requireContext())
@@ -105,25 +108,20 @@ public class LostItemDetailsDialog extends DialogFragment {
         });
 
         ((TextView) view.findViewById(R.id.itemLabel)).setText("Item " + (isFound ? "Found:" : "Lost:"));
-        ((TextView) view.findViewById(R.id.itemLostText)).setText(lostItem.getItemLost());
-
+        ((TextView) view.findViewById(R.id.itemLostText)).setText(lostItem.getItemLost() != null ? lostItem.getItemLost() : "N/A");
         ((TextView) view.findViewById(R.id.dateLabel)).setText("Date " + (isFound ? "Found:" : "Lost:"));
-        ((TextView) view.findViewById(R.id.dateText)).setText(lostItem.getDate());
-
+        ((TextView) view.findViewById(R.id.dateText)).setText(lostItem.getDate() != null ? lostItem.getDate() : "N/A");
         ((TextView) view.findViewById(R.id.timeLabel)).setText("Time " + (isFound ? "Found:" : "Lost:"));
-        ((TextView) view.findViewById(R.id.timeText)).setText(lostItem.getTime());
-
+        ((TextView) view.findViewById(R.id.timeText)).setText(lostItem.getTime() != null ? lostItem.getTime() : "N/A");
         ((TextView) view.findViewById(R.id.locationLabel)).setText(isFound ? "Found At:" : "Lost At:");
-        ((TextView) view.findViewById(R.id.lastSeenText)).setText(lostItem.getLastSeen());
-
-        ((TextView) view.findViewById(R.id.categoryText)).setText(lostItem.getCategory());
-        ((TextView) view.findViewById(R.id.brandText)).setText(lostItem.getBrand());
-        ((TextView) view.findViewById(R.id.additionalInfoText)).setText(lostItem.getAdditionalInfo());
-        ((TextView) view.findViewById(R.id.moreInfoText)).setText(lostItem.getMoreInfo());
-
-        ((TextView) view.findViewById(R.id.accountFnameLname)).setText(lostItem.getFirstName() + " " + lostItem.getLastName());
-        ((TextView) view.findViewById(R.id.useremailadd)).setText(lostItem.getEmail());
-        ((TextView) view.findViewById(R.id.phoneText)).setText(lostItem.getPhone());
+        ((TextView) view.findViewById(R.id.lastSeenText)).setText(lostItem.getLastSeen() != null ? lostItem.getLastSeen() : "N/A");
+        ((TextView) view.findViewById(R.id.categoryText)).setText(lostItem.getCategory() != null ? lostItem.getCategory() : "N/A");
+        ((TextView) view.findViewById(R.id.brandText)).setText(lostItem.getBrand() != null ? lostItem.getBrand() : "N/A");
+        ((TextView) view.findViewById(R.id.additionalInfoText)).setText(lostItem.getAdditionalInfo() != null ? lostItem.getAdditionalInfo() : "N/A");
+        ((TextView) view.findViewById(R.id.moreInfoText)).setText(lostItem.getMoreInfo() != null ? lostItem.getMoreInfo() : "N/A");
+        ((TextView) view.findViewById(R.id.accountFnameLname)).setText((lostItem.getFirstName() != null ? lostItem.getFirstName() : "") + " " + (lostItem.getLastName() != null ? lostItem.getLastName() : ""));
+        ((TextView) view.findViewById(R.id.useremailadd)).setText(lostItem.getEmail() != null ? lostItem.getEmail() : "N/A");
+        ((TextView) view.findViewById(R.id.phoneText)).setText(lostItem.getPhone() != null ? lostItem.getPhone() : "N/A");
 
         Glide.with(requireContext())
                 .load(lostItem.getProfileUrl())
@@ -131,32 +129,50 @@ public class LostItemDetailsDialog extends DialogFragment {
                 .circleCrop()
                 .into((ImageView) view.findViewById(R.id.profileImageView));
 
-        Button alertOwnerBtn = view.findViewById(R.id.alertOwnerBtn);
-        alertOwnerBtn.setOnClickListener(v -> {
-            String ownerEmail = lostItem.getEmail();
-            String reportType = lostItem.getReportType();
-            String currentUserEmail = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                    FirebaseAuth.getInstance().getCurrentUser().getEmail() : "someone";
+        // --- Message Button ---
+        Button messageButton = view.findViewById(R.id.messageBtn);
 
-            String subject = (reportType.equalsIgnoreCase("Lost")) ?
-                    "Regarding your lost item" : "Regarding your found item";
+        if (messageButton != null) {
+            messageButton.setOnClickListener(v -> {
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                if (mAuth.getCurrentUser() == null) {
+                    Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            String message = "Hello " + lostItem.getFirstName() + ",\n\n" +
-                    "I am " + currentUserEmail + ". I would like to alert you about your " +
-                    reportType.toLowerCase() + " item: " + lostItem.getItemLost() + ".\n\n" +
-                    "Please get in touch with me.\n\nThank you.";
+                String currentUserId = mAuth.getCurrentUser().getUid();
+                String receiverId = lostItem.getUserId(); // Could be null
+                String receiverName = ((lostItem.getFirstName() != null ? lostItem.getFirstName() : "") + " " + (lostItem.getLastName() != null ? lostItem.getLastName() : "")).trim();
+                String receiverProfileUrl = lostItem.getProfileUrl() != null ? lostItem.getProfileUrl() : "";
 
-            Intent emailIntent = new Intent(Intent.ACTION_SEND);
-            emailIntent.setType("message/rfc822");
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{ownerEmail});
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            emailIntent.putExtra(Intent.EXTRA_TEXT, message);
+                // Validate receiverId
+                if (receiverId == null || receiverId.isEmpty()) {
+                    Toast.makeText(requireContext(), "Chat not available: User ID missing.", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-            if (emailIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
-                startActivity(emailIntent);
-            } else {
-                Toast.makeText(requireContext(), "No email app found on this device", Toast.LENGTH_SHORT).show();
-            }
-        });
+                // Prevent messaging yourself
+                if (currentUserId.equals(receiverId)) {
+                    Toast.makeText(requireContext(), "You cannot message yourself.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Default name fallback
+                if (receiverName.isEmpty()) receiverName = "User";
+
+                // Open ChatActivity safely
+                try {
+                    Intent intent = new Intent(requireContext(), ChatActivity.class);
+                    intent.putExtra("receiverId", receiverId);
+                    intent.putExtra("receiverName", receiverName);
+                    intent.putExtra("profileImageUrl", receiverProfileUrl);
+                    startActivity(intent);
+                    dismiss();
+                } catch (Exception e) {
+                    android.util.Log.e("LostItemDialog", "Failed to open chat", e);
+                    Toast.makeText(requireContext(), "Error opening chat.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 }

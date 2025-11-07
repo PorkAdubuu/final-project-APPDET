@@ -12,9 +12,6 @@
         android:layout_height="match_parent"
         android:background="@color/light_gray">
 
-
-
-
         <ImageView
             android:id="@+id/imageView2"
             android:layout_width="wrap_content"
@@ -38,26 +35,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/imageView8"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                app:srcCompat="@drawable/ic_backarrow_white" />
-
-            <TextView
-                android:id="@+id/textView13"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="10dp"
-                android:text="Back"
-                android:textColor="@color/white"
-                android:textSize="15sp" />
-
         </LinearLayout>
-
-
 
 
 
@@ -92,21 +70,12 @@
             android:layout_height="0dp"
             android:paddingBottom="10dp"
             android:layout_marginTop="10dp"
-            app:layout_constraintBottom_toTopOf="@+id/clearNotifBtn"
+
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView2" />
 
-        <Button
-            android:id="@+id/clearNotifBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/blue"
-            android:text="Clear All"
-            android:layout_marginBottom="10dp"
-            app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"

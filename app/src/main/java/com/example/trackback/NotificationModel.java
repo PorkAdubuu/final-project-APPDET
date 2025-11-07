@@ -11,6 +11,8 @@ public class NotificationModel {
     private boolean read;
     private String notificationDocId;
 
+    private String status;
+    private long deletedAt;
 
     public NotificationModel() {
         // Required empty constructor for Firestore
@@ -18,7 +20,7 @@ public class NotificationModel {
 
     public NotificationModel(String documentId, String fname, String lastName,
                              String  profileUrl, String date, String time,
-                             String reportType, boolean read) {
+                             String reportType, boolean read, String status) {
         this.documentId = documentId;
         this.fname = fname;
         this.lastName = lastName;
@@ -27,9 +29,18 @@ public class NotificationModel {
         this.time = time;
         this.reportType = reportType;
         this.read = read;
+        this.status = status;
     }
 
     // Getters and Setters
+    public String getStatus() {
+        return status;
+    }
+    public long getDeletedAt() { return deletedAt; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    public void setDeletedAt(long deletedAt) { this.deletedAt = deletedAt; }
     public String getNotificationDocId() {
         return notificationDocId;
     }
@@ -99,4 +110,6 @@ public class NotificationModel {
     public void setRead(boolean read) {
         this.read = read;
     }
+
+
 }

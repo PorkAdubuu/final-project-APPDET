@@ -1,10 +1,17 @@
 package com.example.trackback;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.badge.BadgeDrawable;
@@ -14,17 +21,19 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.HashMap;
 
 public class HomeActivity extends AppCompatActivity {
 
+    private static final String TAG = "HomeActivity";
     private FrameLayout overlay;
     private BottomNavigationView bottomNavigationView;
     private FirebaseFirestore db;
     private ListenerRegistration notifListener;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +44,19 @@ public class HomeActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         db = FirebaseFirestore.getInstance();
 
+        // Initialize permission launcher for notifications (Android 13+)
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        Log.d(TAG, "Notification permission granted");
+                        initializeFcmToken();
+                    } else {
+                        Log.d(TAG, "Notification permission denied");
+                    }
+                }
+        );
+
         // Ensure user document exists
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -42,6 +64,10 @@ public class HomeActivity extends AppCompatActivity {
                     .document(user.getUid())
                     .set(new HashMap<>(), SetOptions.merge());
         }
+
+        // Request notification permission and initialize FCM
+        requestNotificationPermission();
+        initializeFcmToken();
 
         // Floating Action Button
         FloatingActionButton fabAdd = findViewById(R.id.floatingActionButtonAdd);
@@ -97,6 +123,50 @@ public class HomeActivity extends AppCompatActivity {
 
         // Fetch and update notification badge count on startup
         startListeningUnreadNotifications();
+    }
+
+    // Request notification permission for Android 13+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+    // Initialize and save FCM token
+    private void initializeFcmToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fetching FCM token failed", task.getException());
+                        return;
+                    }
+
+                    // Get FCM token
+                    String token = task.getResult();
+                    Log.d(TAG, "FCM Token: " + token);
+
+                    // Save token to Firestore
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    if (user != null) {
+                        db.collection("users")
+                                .document(user.getUid())
+                                .update("fcmToken", token)
+                                .addOnSuccessListener(aVoid ->
+                                        Log.d(TAG, "FCM token saved to Firestore"))
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to save FCM token, trying set", e);
+                                    // If update fails, try set with merge
+                                    HashMap<String, Object> data = new HashMap<>();
+                                    data.put("fcmToken", token);
+                                    db.collection("users")
+                                            .document(user.getUid())
+                                            .set(data, SetOptions.merge());
+                                });
+                    }
+                });
     }
 
     @Override
@@ -156,4 +226,9 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopListeningUnreadNotifications();
+    }
 }

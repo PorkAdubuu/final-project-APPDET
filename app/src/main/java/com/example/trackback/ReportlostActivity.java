@@ -225,7 +225,9 @@ public class ReportlostActivity extends AppCompatActivity {
                                                 date,
                                                 time,
                                                 "Lost",
-                                                false
+                                                false,
+                                                "active"
+
                                         );
 
                                         // ✅ Send to all users except current user

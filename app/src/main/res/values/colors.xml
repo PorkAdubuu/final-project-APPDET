@@ -9,4 +9,7 @@
     <color name="light_gray">#eaeaea</color>
     <color name="blue1">#0197f3</color>
     <color name="semiblue">#e3edfb</color>
+    <color name="primary">#2196F3</color>
+    <color name="red">#FFFF0000</color>
+
 </resources>

@@ -36,17 +36,33 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
     public void onBindViewHolder(@NonNull LostItemViewHolder holder, int position) {
         ListLostItem lostItem = lostItemList.get(position);
 
-        String reportType = lostItem.getReportType(); // ← Add this check
-        if (reportType != null && reportType.equalsIgnoreCase("Found")) {
+        String reportType = lostItem.getReportType();
+        boolean isFound = reportType != null && reportType.equalsIgnoreCase("Found");
+
+        // Update item title based on report type
+        if (isFound) {
             holder.itemLostText.setText("Item Found: " + lostItem.getItemLost());
         } else {
             holder.itemLostText.setText("Item Lost: " + lostItem.getItemLost());
         }
 
         holder.categoryText.setText("Category: " + lostItem.getCategory());
-        holder.locationText.setText("Location: " + lostItem.getLastSeen());
-        holder.dateText.setText("Date Lost: " + lostItem.getDate());
 
+        // Update location label based on report type
+        if (isFound) {
+            holder.locationText.setText("Found At: " + lostItem.getLastSeen());
+        } else {
+            holder.locationText.setText("Lost At: " + lostItem.getLastSeen());
+        }
+
+        // Update date label based on report type
+        if (isFound) {
+            holder.dateText.setText("Date Found: " + lostItem.getDate());
+        } else {
+            holder.dateText.setText("Date Lost: " + lostItem.getDate());
+        }
+
+        // Load profile image
         if (lostItem.getProfileUrl() != null && !lostItem.getProfileUrl().isEmpty()) {
             Glide.with(context)
                     .load(lostItem.getProfileUrl())
@@ -67,8 +83,6 @@ public class ListLostItemsAdapter extends RecyclerView.Adapter<ListLostItemsAdap
             }
         });
     }
-
-
 
     @Override
     public int getItemCount() {

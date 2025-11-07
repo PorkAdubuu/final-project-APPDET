@@ -46,22 +46,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/imageView8"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                app:srcCompat="@drawable/ic_backarrow_white" />
-
-            <TextView
-                android:id="@+id/textView13"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="10dp"
-                android:text="Back"
-                android:textColor="@color/white"
-                android:textSize="15sp" />
 
         </LinearLayout>
 
@@ -112,6 +96,8 @@
             android:layout_marginLeft="20dp"
             android:layout_marginTop="10dp"
             android:text="Reports of Lost and Found Items"
+            android:fontFamily="@font/montserrat_extrabold"
+            android:textSize="12sp"
             android:textColor="@color/blue"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -123,7 +109,7 @@
             android:id="@+id/lostItemsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:paddingBottom="10dp"
+            android:paddingBottom="30dp"
             app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     android:background="@color/light_gray">
 
-
     <ImageView
         android:id="@+id/imageView11"
         android:layout_width="wrap_content"
@@ -44,56 +43,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:id="@+id/imageView8"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            app:srcCompat="@drawable/ic_backarrow_white" />
 
-        <TextView
-            android:id="@+id/textView13"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginLeft="10dp"
-            android:text="Back"
-            android:textColor="@color/white"
-            android:textSize="15sp" />
+
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/logoutBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/menuButton"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginTop="20dp"
-        android:layout_marginRight="10dp"
-        android:orientation="horizontal"
+        android:layout_marginRight="15dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:padding="4dp"
+        android:scaleType="centerInside"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-
-        <TextView
-            android:id="@+id/textView114"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginRight="10dp"
-            android:text="Log out"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:textSize="15sp" />
-        <ImageView
-            android:id="@+id/imageView9"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            app:srcCompat="@drawable/logout_ic" />
-
-
-
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_menu_white" />
 
     <FrameLayout
         android:id="@+id/frameLayout"
@@ -112,7 +78,6 @@
             android:layout_height="80dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop" />
-
 
     </FrameLayout>
 
@@ -160,94 +125,33 @@
         android:background="@color/gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/phoneNumberText">
-
-    </FrameLayout>
-
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="wrap_content"
-        android:layout_height="120dp"
-        android:layout_marginTop="15dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:scaleType="fitXY"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/frameLayout2"
-        app:srcCompat="@drawable/blue_round_bg" />
+        app:layout_constraintTop_toBottomOf="@+id/phoneNumberText" />
 
 
-    <LinearLayout
-        android:id="@+id/linearLayout6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="31dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView4"
-        app:layout_constraintEnd_toEndOf="@+id/imageView4"
-        app:layout_constraintStart_toStartOf="@+id/imageView4"
-        app:layout_constraintTop_toBottomOf="@+id/frameLayout2">
-
-        <LinearLayout
-            android:id="@+id/linearLayout5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="50dp"
-            android:layout_marginTop="50dp"
-            android:orientation="vertical"
-            android:textAlignment="center">
-
-            <TextView
-                android:id="@+id/textView31"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:text="Manage all your posts"
-                android:textColor="@color/white"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/textView32"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/montserrat_extrabold"
-                android:text="Track your report history and stay\nconnected. View, edit, or check the\nstatus of your reported items."
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/imageView12"
-            android:layout_width="130dp"
-            android:layout_height="170dp"
-            android:paddingTop="20dp"
-            android:scaleType="fitXY"
-
-            android:src="@drawable/bulb_hand" />
-    </LinearLayout>
-
+    <!-- My Listings -->
     <TextView
         android:id="@+id/textView33"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/montserrat_extrabold"
         android:text="My Listings"
-        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
         android:textColor="@color/blue"
-        android:textSize="20sp"
+        android:textSize="17sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout2" />
+
 
     <!-- Tab Layout -->
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView33"
         app:tabGravity="fill"
@@ -260,25 +164,26 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="All" />
+            android:text="All"
+            android:layout_marginEnd="-12dp"/>
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lost Items" />
+            android:text="Lost " />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Found Items" />
+            android:text="Found"
+            android:layout_marginEnd="-13dp"/>
     </com.google.android.material.tabs.TabLayout>
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/itemsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:paddingBottom="15dp"
+        android:paddingBottom="30dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -294,12 +199,6 @@
         app:labelVisibilityMode="unlabeled"
         app:itemIconTint="@color/nav_item_selector"
         app:itemTextColor="@color/nav_item_selector"
-        app:layout_constraintBottom_toBottomOf="parent" >
-
-
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
-
-
-
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
