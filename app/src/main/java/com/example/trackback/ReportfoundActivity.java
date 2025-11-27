@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -15,7 +13,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,8 +38,6 @@ public class ReportfoundActivity extends AppCompatActivity {
     private EditText fileNameText;
     private android.app.AlertDialog loadingDialog;
 
-    private String status;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +54,6 @@ public class ReportfoundActivity extends AppCompatActivity {
         EditText itemLostText = findViewById(R.id.itemLostText);
         EditText brandText = findViewById(R.id.brandText);
         EditText additionalInfoText = findViewById(R.id.additionalInfoText);
-        EditText lastSeenText = findViewById(R.id.lastSeenText);
         EditText moreInfoText = findViewById(R.id.moreInfoText);
         EditText firstNameText = findViewById(R.id.firstNameText);
         EditText lastNameText = findViewById(R.id.lastNameText);
@@ -73,13 +67,34 @@ public class ReportfoundActivity extends AppCompatActivity {
         ImageButton timePickerBtn = findViewById(R.id.timePicker);
         timeText.setKeyListener(null);
 
+        // Category dropdown
         String[] categories = {
                 "Gadgets", "Personal Belongings", "Bags", "Accessories",
                 "Clothing", "School Supplies", "Drinkware", "Others"
         };
         AutoCompleteTextView autoComplete = findViewById(R.id.category);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.dropdown_item, categories);
-        autoComplete.setAdapter(adapter);
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, categories);
+        autoComplete.setAdapter(categoryAdapter);
+
+        // Location dropdown
+        AutoCompleteTextView locationDropdown = findViewById(R.id.locationDropdown);
+
+        if (locationDropdown != null) {
+            String[] locations = {
+                    "Umak Oval", "HPSB", "Admin Building", "Academic Building 1",
+                    "Academic Building 2", "Library", "Cafeteria"
+            };
+
+            ArrayAdapter<String> locationAdapter = new ArrayAdapter<>(
+                    this,
+                    R.layout.dropdown_item,  // Use consistent layout
+                    locations
+            );
+
+            locationDropdown.setAdapter(locationAdapter);
+        } else {
+            Log.e("ReportfoundActivity", "locationDropdown not found in layout!");
+        }
 
         datePickerBtn.setOnClickListener(v -> {
             MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
@@ -120,11 +135,15 @@ public class ReportfoundActivity extends AppCompatActivity {
             dateText.setText("");
             timeText.setText("");
             additionalInfoText.setText("");
-            lastSeenText.setText("");
             moreInfoText.setText("");
             firstNameText.setText("");
             lastNameText.setText("");
             phoneNumber.setText("");
+            if (locationDropdown != null) {
+                locationDropdown.setText("");
+            }
+            fileNameText.setText("");
+            selectedImageUri = null;
         });
 
         findViewById(R.id.publishBtn).setOnClickListener(v -> {
@@ -133,19 +152,24 @@ public class ReportfoundActivity extends AppCompatActivity {
                 userEmail = mAuth.getCurrentUser().getEmail();
             }
 
-            publishLostItem(
+            String location = "";
+            if (locationDropdown != null) {
+                location = locationDropdown.getText().toString();
+            }
+
+            publishFoundItem(
                     itemLostText.getText().toString(),
                     autoComplete.getText().toString(),
                     brandText.getText().toString(),
                     dateText.getText().toString(),
                     timeText.getText().toString(),
                     additionalInfoText.getText().toString(),
-                    lastSeenText.getText().toString(),
+                    location,  // Use location from dropdown
                     moreInfoText.getText().toString(),
                     firstNameText.getText().toString(),
                     lastNameText.getText().toString(),
                     phoneNumber.getText().toString(),
-                    userEmail  // use email from FirebaseAuth here
+                    userEmail
             );
         });
     }
@@ -175,14 +199,16 @@ public class ReportfoundActivity extends AppCompatActivity {
         }
     }
 
-    private void publishLostItem(String itemLost, String category, String brand, String date,
-                                 String time, String additionalInfo, String lastSeen,
-                                 String moreInfo, String firstName, String lastName, String phone,
-                                 String email) {
+    private void publishFoundItem(String itemFound, String category, String brand, String date,
+                                  String time, String additionalInfo, String foundAt,
+                                  String moreInfo, String firstName, String lastName, String phone,
+                                  String email) {
 
-        if (itemLost.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
-                time.isEmpty() || additionalInfo.isEmpty() || lastSeen.isEmpty() ||
-                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+        // Validation
+        if (itemFound.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
+                time.isEmpty() || additionalInfo.isEmpty() || foundAt.isEmpty() ||
+                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() ||
+                phone.isEmpty() || email.isEmpty()) {
 
             Toast.makeText(this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
             return;
@@ -196,38 +222,37 @@ public class ReportfoundActivity extends AppCompatActivity {
             if (selectedImageUri != null) {
                 showLoadingDialog();
 
+
                 String docId = db.collection("lostItems").document().getId();
                 StorageReference storageRef = FirebaseStorage.getInstance()
-                        .getReference("lost_images/" + docId + ".jpg");
+                        .getReference("found_images/" + docId + ".jpg");
 
                 storageRef.putFile(selectedImageUri)
                         .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                             String imageUrl = uri.toString();
 
-                            LostItem lostItem = new LostItem(
-                                    itemLost, category, brand, date, time, additionalInfo,
-                                    lastSeen, moreInfo, firstName, lastName, phone,
-                                    email, profileUrl, imageUrl, userId, "Found"
+                            LostItem foundItem = new LostItem(
+                                    itemFound, category, brand, date, time, additionalInfo,
+                                    foundAt, moreInfo, firstName, lastName, phone,
+                                    email, profileUrl, imageUrl, userId, "FOUND"  // CHANGED: Use "FOUND" uppercase
                             );
 
-                            lostItem.setDocumentId(docId);
+                            foundItem.setDocumentId(docId);
 
-                            db.collection("lostItems").document(docId).set(lostItem)
+                            db.collection("lostItems").document(docId).set(foundItem)
                                     .addOnSuccessListener(aVoid -> {
                                         // Create notification for Found item
                                         NotificationModel notification = new NotificationModel(
-                                                docId,           // documentId - the lost item document ID
-                                                firstName,       // fname
-                                                lastName,        // lastName
-                                                profileUrl,      // profileUrl - poster's profile image
-                                                date,           // date
-                                                time,           // time
-                                                "Found",        // reportType
-                                                false,           // read status
+                                                docId,
+                                                firstName,
+                                                lastName,
+                                                profileUrl,
+                                                date,
+                                                time,
+                                                "Found",
+                                                false,
                                                 "active"
                                         );
-
-
 
                                         // Send notification to all users except current user
                                         db.collection("users").get().addOnSuccessListener(querySnapshot -> {
@@ -235,16 +260,13 @@ public class ReportfoundActivity extends AppCompatActivity {
                                                         String otherUserId = userDoc.getId();
 
                                                         if (!otherUserId.equals(userId)) {
-                                                            // Generate notification document ID
                                                             String notifId = db.collection("users")
                                                                     .document(otherUserId)
                                                                     .collection("notifications")
                                                                     .document().getId();
 
-                                                            // Set the notification document ID in the model
                                                             notification.setNotificationDocId(notifId);
 
-                                                            // Save notification to user's notifications subcollection
                                                             db.collection("users").document(otherUserId)
                                                                     .collection("notifications").document(notifId)
                                                                     .set(notification)
@@ -267,11 +289,15 @@ public class ReportfoundActivity extends AppCompatActivity {
                                                     ((EditText) findViewById(R.id.dateText)).setText("");
                                                     ((EditText) findViewById(R.id.timeText)).setText("");
                                                     ((EditText) findViewById(R.id.additionalInfoText)).setText("");
-                                                    ((EditText) findViewById(R.id.lastSeenText)).setText("");
                                                     ((EditText) findViewById(R.id.moreInfoText)).setText("");
                                                     ((EditText) findViewById(R.id.firstNameText)).setText("");
                                                     ((EditText) findViewById(R.id.lastNameText)).setText("");
                                                     ((EditText) findViewById(R.id.phoneNumber)).setText("");
+
+                                                    AutoCompleteTextView locationDropdown = findViewById(R.id.locationDropdown);
+                                                    if (locationDropdown != null) {
+                                                        locationDropdown.setText("");
+                                                    }
 
                                                     fileNameText.setText("");
                                                     selectedImageUri = null;
@@ -298,7 +324,6 @@ public class ReportfoundActivity extends AppCompatActivity {
             Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

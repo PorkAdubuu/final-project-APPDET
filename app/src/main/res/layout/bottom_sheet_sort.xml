@@ -150,6 +150,92 @@
                     android:text="Others" />
             </LinearLayout>
         </LinearLayout>
+        <TextView
+            android:id="@+id/textViewLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp" />
+
+        <LinearLayout
+            android:id="@+id/radioLocationContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <RadioButton
+                    android:id="@+id/radioAlllocation"
+                    style="@style/CustomRadioButton"
+                    android:text="All" />
+
+                <RadioButton
+                    android:id="@+id/radioOval"
+                    style="@style/CustomRadioButton"
+                    android:text="Umak Oval" />
+
+                <RadioButton
+                    android:id="@+id/radioHPSB"
+                    style="@style/CustomRadioButton"
+                    android:text="HPSB" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <RadioButton
+                    android:id="@+id/radioAdmin"
+                    style="@style/CustomRadioButton"
+                    android:text="Admin Building" />
+                <RadioButton
+                    android:id="@+id/radioLibrary"
+                    style="@style/CustomRadioButton"
+                    android:text="Library" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <RadioButton
+                    android:id="@+id/radioAcad1"
+                    style="@style/CustomRadioButton"
+                    android:text="Academic Building 1" />
+
+                <RadioButton
+                    android:id="@+id/radioCafeteria"
+                    style="@style/CustomRadioButton"
+                    android:text="Cafeteria" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioAcad2"
+                    style="@style/CustomRadioButton"
+                    android:text="Academic Building 2" />
+
+            </LinearLayout>
+        </LinearLayout>
 
         <!-- Apply Button -->
         <Button

@@ -23,7 +23,6 @@
             android:layout_gravity="center"
             app:srcCompat="@drawable/ic_backarrow_white" />
 
-
         <ImageView
             android:id="@+id/profileImageView"
             android:layout_width="40dp"
@@ -35,8 +34,6 @@
             android:clipToOutline="true"
             android:background="@drawable/circle_outline"
             android:contentDescription="Profile picture" />
-
-
 
         <TextView
             android:id="@+id/receiverNameTextView"
@@ -62,10 +59,8 @@
         android:clipToPadding="false"
         android:scrollbars="vertical" />
 
-
     <!-- Input Layout -->
     <LinearLayout
-
         android:id="@+id/inputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -97,7 +92,6 @@
             android:textSize="16sp"
             android:scrollbars="vertical"
             android:overScrollMode="always"/>
-
 
         <ImageButton
             android:id="@+id/btnSend"

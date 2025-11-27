@@ -1,6 +1,7 @@
 package com.example.trackback;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,11 +45,17 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationModel notif = notificationList.get(position);
 
         holder.fullnameText.setText(notif.getFname() + " " + notif.getLastName());
-        holder.itemText.setText("Posted a new " + notif.getReportType() + " item.");
-        holder.dateAndTimeText.setText(notif.getDate() + " | " + notif.getTime());
-        holder.typeText.setText("Type: " + notif.getReportType());
 
-        // Long-press to show delete option
+        if ("match".equals(notif.getNotificationType())) {
+            holder.itemText.setText("Found a potential match for: " + notif.getItemName());
+            holder.typeText.setText("Type: Match");
+        } else {
+            holder.itemText.setText("Posted a new " + notif.getReportType() + " item.");
+            holder.typeText.setText("Type: " + notif.getReportType());
+        }
+
+        holder.dateAndTimeText.setText(notif.getDate() + " | " + notif.getTime());
+
         holder.itemView.setOnLongClickListener(v -> {
             BottomSheetDialog bottomSheet = new BottomSheetDialog(context);
             View view = LayoutInflater.from(context).inflate(R.layout.bottom_sheet_notification_options, null);
@@ -59,7 +66,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             deleteOption.setOnClickListener(v1 -> {
                 bottomSheet.dismiss();
 
-                // Delete from Firestore permanently
                 String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 FirebaseFirestore.getInstance()
                         .collection("users")
@@ -68,7 +74,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                         .document(notif.getNotificationDocId())
                         .delete()
                         .addOnSuccessListener(aVoid -> {
-                            // Remove from list and update UI
                             int currentPosition = holder.getAdapterPosition();
                             if (currentPosition != RecyclerView.NO_POSITION) {
                                 notificationList.remove(currentPosition);
@@ -86,7 +91,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             return true;
         });
 
-        // Load profile image
         if (notif.getImageUrl() != null && !notif.getImageUrl().isEmpty()) {
             Glide.with(context)
                     .load(notif.getImageUrl())
@@ -96,48 +100,64 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             holder.profileImageView.setImageResource(R.drawable.def_prof);
         }
 
-        // Set read/unread background
         if (!notif.isRead()) {
             holder.itemView.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_unread));
         } else {
             holder.itemView.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_read));
         }
 
-        // View post button
         holder.viewPostBtn.setOnClickListener(v -> {
-            String lostItemDocId = notif.getDocumentId();
+            if ("match".equals(notif.getNotificationType())) {
+                Intent intent = new Intent(context, MatchDetailActivity.class);
+                intent.putExtra("lostItemId", notif.getLostItemId());
+                intent.putExtra("foundItemId", notif.getFoundItemId());
+                context.startActivity(intent);
 
-            FirebaseFirestore.getInstance()
-                    .collection("lostItems")
-                    .document(lostItemDocId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            ListLostItem lostItem = documentSnapshot.toObject(ListLostItem.class);
-                            if (lostItem != null) {
-                                LostItemDetailsDialog dialog = LostItemDetailsDialog.newInstance(lostItem);
-                                dialog.show(((FragmentActivity) context).getSupportFragmentManager(), "LostItemDetailsDialog");
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(userId)
+                        .collection("notifications")
+                        .document(notif.getNotificationDocId())
+                        .update("read", true)
+                        .addOnSuccessListener(aVoid -> {
+                            notif.setRead(true);
+                            notifyItemChanged(holder.getAdapterPosition());
+                        });
+            } else {
+                String lostItemDocId = notif.getDocumentId();
 
-                                // Mark notification as read
-                                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                                FirebaseFirestore.getInstance()
-                                        .collection("users")
-                                        .document(userId)
-                                        .collection("notifications")
-                                        .document(notif.getNotificationDocId())
-                                        .update("read", true)
-                                        .addOnSuccessListener(aVoid -> {
-                                            notif.setRead(true);
-                                            notifyItemChanged(holder.getAdapterPosition());
-                                        });
+                FirebaseFirestore.getInstance()
+                        .collection("lostItems")
+                        .document(lostItemDocId)
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                ListLostItem lostItem = documentSnapshot.toObject(ListLostItem.class);
+                                if (lostItem != null) {
+                                    LostItemDetailsDialog dialog = LostItemDetailsDialog.newInstance(lostItem);
+                                    dialog.show(((FragmentActivity) context).getSupportFragmentManager(), "LostItemDetailsDialog");
+
+                                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                    FirebaseFirestore.getInstance()
+                                            .collection("users")
+                                            .document(userId)
+                                            .collection("notifications")
+                                            .document(notif.getNotificationDocId())
+                                            .update("read", true)
+                                            .addOnSuccessListener(aVoid -> {
+                                                notif.setRead(true);
+                                                notifyItemChanged(holder.getAdapterPosition());
+                                            });
+                                }
+                            } else {
+                                Toast.makeText(context, "Lost item details not found.", Toast.LENGTH_SHORT).show();
                             }
-                        } else {
-                            Toast.makeText(context, "Lost item details not found.", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Failed to load lost item details.", Toast.LENGTH_SHORT).show();
-                    });
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Failed to load lost item details.", Toast.LENGTH_SHORT).show();
+                        });
+            }
         });
     }
 

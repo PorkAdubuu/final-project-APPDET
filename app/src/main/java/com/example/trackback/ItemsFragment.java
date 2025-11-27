@@ -51,7 +51,6 @@ public class ItemsFragment extends Fragment {
                     .commit();
         });
 
-
         recyclerView = view.findViewById(R.id.lostItemsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -80,9 +79,6 @@ public class ItemsFragment extends Fragment {
         } else {
             Log.w("Firestore", "User not authenticated");
         }
-
-
-
 
         return view;
     }
@@ -166,16 +162,36 @@ public class ItemsFragment extends Fragment {
             else if (((RadioButton) view.findViewById(R.id.radioOthers)).isChecked()) selectedCategory = "Others";
 
             String selectedReportType = null;
-            if (((RadioButton) view.findViewById(R.id.radioLost)).isChecked()) selectedReportType = "lost";
-            else if (((RadioButton) view.findViewById(R.id.radioFound)).isChecked()) selectedReportType = "found";
+            if (((RadioButton) view.findViewById(R.id.radioLost)).isChecked()) selectedReportType = "Lost";
+            else if (((RadioButton) view.findViewById(R.id.radioFound)).isChecked()) selectedReportType = "Found";
+
+            String selectedLocation = null;
+            RadioButton radioUmakOval = view.findViewById(R.id.radioOval);
+            RadioButton radioHPSB = view.findViewById(R.id.radioHPSB);
+            RadioButton radioAdminBuilding = view.findViewById(R.id.radioAdmin);
+            RadioButton radioAcademicBuilding1 = view.findViewById(R.id.radioAcad1);
+            RadioButton radioAcademicBuilding2 = view.findViewById(R.id.radioAcad2);
+            RadioButton radioLibrary = view.findViewById(R.id.radioLibrary);
+            RadioButton radioCafeteria = view.findViewById(R.id.radioCafeteria);
+
+            if (radioUmakOval != null && radioUmakOval.isChecked()) selectedLocation = "Umak Oval";
+            else if (radioHPSB != null && radioHPSB.isChecked()) selectedLocation = "HPSB";
+            else if (radioAdminBuilding != null && radioAdminBuilding.isChecked()) selectedLocation = "Admin Building";
+            else if (radioAcademicBuilding1 != null && radioAcademicBuilding1.isChecked()) selectedLocation = "Academic Building 1";
+            else if (radioAcademicBuilding2 != null && radioAcademicBuilding2.isChecked()) selectedLocation = "Academic Building 2";
+            else if (radioLibrary != null && radioLibrary.isChecked()) selectedLocation = "Library";
+            else if (radioCafeteria != null && radioCafeteria.isChecked()) selectedLocation = "Cafeteria";
 
             // Filter logic
             List<ListLostItem> filteredList = new ArrayList<>();
             for (ListLostItem item : allLostItems) {
                 boolean matchCategory = selectedCategory == null || selectedCategory.equals(item.getCategory());
-                boolean matchReportType = selectedReportType == null || (item.getReportType() != null &&
-                        item.getReportType().equalsIgnoreCase(selectedReportType));
-                if (matchCategory && matchReportType) {
+                boolean matchReportType = selectedReportType == null ||
+                        (item.getReportType() != null && item.getReportType().equalsIgnoreCase(selectedReportType));
+                boolean matchLocation = selectedLocation == null ||
+                        (item.getLastSeen() != null && item.getLastSeen().equalsIgnoreCase(selectedLocation));
+
+                if (matchCategory && matchReportType && matchLocation) {
                     filteredList.add(item);
                 }
             }

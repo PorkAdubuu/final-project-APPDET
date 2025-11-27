@@ -82,9 +82,7 @@ public class MessagesActivity extends AppCompatActivity {
     }
 
     private void loadChatList() {
-        if (chatListListener != null) {
-            return;
-        }
+        if (chatListListener != null) return;
 
         chatListListener = firestore.collection("chatList")
                 .whereArrayContains("participants", currentUserId)
@@ -92,64 +90,72 @@ public class MessagesActivity extends AppCompatActivity {
                     if (error != null || value == null) return;
 
                     for (DocumentChange dc : value.getDocumentChanges()) {
+
                         Map<String, Object> data = dc.getDocument().getData();
                         if (data == null) continue;
 
-                        // Check if archived
+                        // Skip archived conversations
                         Boolean isArchived = (Boolean) data.get("archivedFor_" + currentUserId);
-                        if (isArchived != null && isArchived) {
-                            continue;
-                        }
+                        if (isArchived != null && isArchived) continue;
 
+                        // Determine user1/user2 mapping
                         String user1Id = (String) data.get("user1Id");
                         String user2Id = (String) data.get("user2Id");
-                        String lastSenderId = (String) data.get("lastSenderId");
+
+                        if (user1Id == null || user2Id == null) continue;
 
                         boolean isUser1 = currentUserId.equals(user1Id);
                         String otherUserId = isUser1 ? user2Id : user1Id;
 
-                        // Check if blocked
-                        if (blockedUserIds.contains(otherUserId)) {
-                            continue;
-                        }
+                        // Skip blocked users
+                        if (blockedUserIds.contains(otherUserId)) continue;
 
-                        String otherUserName = isUser1 ? (String) data.get("user2Name") : (String) data.get("user1Name");
-                        String otherUserProfile = isUser1 ? (String) data.get("user2ProfileUrl") : (String) data.get("user1ProfileUrl");
+                        // Read display name and profile
+                        String otherUserName = isUser1
+                                ? (String) data.get("user2Name")
+                                : (String) data.get("user1Name");
 
+                        String otherUserProfile = isUser1
+                                ? (String) data.get("user2ProfileUrl")
+                                : (String) data.get("user1ProfileUrl");
+
+                        String lastSenderId = (String) data.get("lastSenderId");
                         Boolean unreadValue = (Boolean) data.get("unread");
+
                         boolean isUnread = (unreadValue != null && unreadValue) &&
                                 (lastSenderId != null && !currentUserId.equals(lastSenderId));
 
                         String lastMessage = (String) data.get("lastMessage");
 
+                        // Build item
                         ChatListItem item = new ChatListItem();
-                        item.setLastMessage(lastMessage);
-                        item.setTimestamp((com.google.firebase.Timestamp) data.get("timestamp"));
-                        item.setName(otherUserName != null ? otherUserName : "User");
-                        item.setProfileImageUrl(otherUserProfile);
                         item.setReceiverId(otherUserId);
                         item.setSenderId(currentUserId);
+                        item.setName(otherUserName != null ? otherUserName : "User");
+                        item.setProfileImageUrl(otherUserProfile);
+                        item.setLastMessage(lastMessage != null ? lastMessage : "");
+                        item.setTimestamp((com.google.firebase.Timestamp) data.get("timestamp"));
                         item.setUnread(isUnread);
                         item.setLastSenderId(lastSenderId);
                         item.setDocumentId(dc.getDocument().getId());
 
+                        // Handle Firestore changes
                         switch (dc.getType()) {
+
                             case ADDED:
                                 boolean exists = false;
-                                for (ChatListItem existingItem : chatList) {
-                                    if (existingItem.getReceiverId().equals(otherUserId)) {
+                                for (ChatListItem c : chatList) {
+                                    if (otherUserId.equals(c.getReceiverId())) {
                                         exists = true;
                                         break;
                                     }
                                 }
-                                if (!exists) {
-                                    chatList.add(item);
-                                }
+                                if (!exists) chatList.add(item);
                                 break;
 
                             case MODIFIED:
                                 for (int i = 0; i < chatList.size(); i++) {
-                                    if (chatList.get(i).getReceiverId().equals(otherUserId)) {
+                                    if (otherUserId.equals(chatList.get(i).getReceiverId())) {
                                         chatList.set(i, item);
                                         break;
                                     }
@@ -157,12 +163,12 @@ public class MessagesActivity extends AppCompatActivity {
                                 break;
 
                             case REMOVED:
-                                chatList.removeIf(chat -> chat.getReceiverId().equals(otherUserId));
+                                chatList.removeIf(c -> otherUserId.equals(c.getReceiverId()));
                                 break;
                         }
                     }
 
-                    // Sort by timestamp
+                    // Sort newest first
                     chatList.sort((a, b) -> {
                         if (a.getTimestamp() == null) return 1;
                         if (b.getTimestamp() == null) return -1;
@@ -171,6 +177,7 @@ public class MessagesActivity extends AppCompatActivity {
 
                     chatListAdapter.notifyDataSetChanged();
 
+                    // Show empty state
                     if (chatList.isEmpty()) {
                         recyclerView.setVisibility(View.GONE);
                         emptyText.setVisibility(View.VISIBLE);
@@ -180,4 +187,5 @@ public class MessagesActivity extends AppCompatActivity {
                     }
                 });
     }
+
 }

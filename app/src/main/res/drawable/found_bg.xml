@@ -3,7 +3,7 @@
     android:shape="oval">
 
     <!-- Background color for FOUND -->
-    <solid android:color="#4dbdf7"/> <!-- Blue shade -->
+    <solid android:color="#3a68dc"/> <!-- Blue shade -->
 
 
 

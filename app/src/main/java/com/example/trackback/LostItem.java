@@ -23,6 +23,9 @@ public class LostItem {
     private String reportType;
     private String email;
 
+    // Trash/Archive fields
+    private boolean isDeleted = false;
+    private Timestamp deletedAt;
 
     public LostItem() {
     }
@@ -42,14 +45,14 @@ public class LostItem {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
-        this.email = email;            // <--- add this line
+        this.email = email;
         this.profileUrl = profileUrl;
         this.itemImageUrl = itemImageUrl;
         this.userId = userId;
         this.reportType = reportType;
         this.timestamp = Timestamp.now();
+        this.isDeleted = false; // Default to not deleted
     }
-
 
     public LostItem(String documentId, String itemLost, String category, String brand, String date, String time,
                     String additionalInfo, String lastSeen, String moreInfo,
@@ -71,9 +74,10 @@ public class LostItem {
         this.itemImageUrl = itemImageUrl;
         this.userId = userId;
         this.timestamp = timestamp;
+        this.isDeleted = false; // Default to not deleted
     }
 
-    // Getters and setters...
+    // Existing getters and setters
 
     public String getEmail() {
         return email;
@@ -83,58 +87,157 @@ public class LostItem {
         this.email = email;
     }
 
-
     public String getReportType() {
         return reportType;
     }
+
     public void setReportType(String reportType) {
         this.reportType = reportType;
     }
-    public String getDocumentId() { return documentId; }
-    public void setDocumentId(String documentId) { this.documentId = documentId; }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public String getDocumentId() {
+        return documentId;
+    }
 
-    public String getItemLost() { return itemLost; }
-    public void setItemLost(String itemLost) { this.itemLost = itemLost; }
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getUserId() {
+        return userId;
+    }
 
-    public String getBrand() { return brand; }
-    public void setBrand(String brand) { this.brand = brand; }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-    public String getDate() { return date; }
-    public void setDate(String date) { this.date = date; }
+    public String getItemLost() {
+        return itemLost;
+    }
 
-    public String getTime() { return time; }
-    public void setTime(String time) { this.time = time; }
+    public void setItemLost(String itemLost) {
+        this.itemLost = itemLost;
+    }
 
-    public String getAdditionalInfo() { return additionalInfo; }
-    public void setAdditionalInfo(String additionalInfo) { this.additionalInfo = additionalInfo; }
+    public String getCategory() {
+        return category;
+    }
 
-    public String getLastSeen() { return lastSeen; }
-    public void setLastSeen(String lastSeen) { this.lastSeen = lastSeen; }
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-    public String getMoreInfo() { return moreInfo; }
-    public void setMoreInfo(String moreInfo) { this.moreInfo = moreInfo; }
+    public String getBrand() {
+        return brand;
+    }
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getDate() {
+        return date;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public void setDate(String date) {
+        this.date = date;
+    }
 
-    public String getProfileUrl() { return profileUrl; }
-    public void setProfileUrl(String profileUrl) { this.profileUrl = profileUrl; }
+    public String getTime() {
+        return time;
+    }
 
-    public String getItemImageUrl() { return itemImageUrl; }
-    public void setItemImageUrl(String itemImageUrl) { this.itemImageUrl = itemImageUrl; }
+    public void setTime(String time) {
+        this.time = time;
+    }
 
-    public Timestamp getTimestamp() { return timestamp; }
-    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }
+    public String getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    public void setAdditionalInfo(String additionalInfo) {
+        this.additionalInfo = additionalInfo;
+    }
+
+    public String getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(String lastSeen) {
+        this.lastSeen = lastSeen;
+    }
+
+    public String getMoreInfo() {
+        return moreInfo;
+    }
+
+    public void setMoreInfo(String moreInfo) {
+        this.moreInfo = moreInfo;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getProfileUrl() {
+        return profileUrl;
+    }
+
+    public void setProfileUrl(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
+
+    public String getItemImageUrl() {
+        return itemImageUrl;
+    }
+
+    public void setItemImageUrl(String itemImageUrl) {
+        this.itemImageUrl = itemImageUrl;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    // New getters and setters for trash functionality
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public Timestamp getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Timestamp deletedAt) {
+        this.deletedAt = deletedAt;
+    }
 }

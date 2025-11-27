@@ -3,6 +3,7 @@ package com.example.trackback;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -46,6 +47,7 @@ public class ChatActivity extends AppCompatActivity {
     private List<Message> messages;
     private String currentUserId;
     private String receiverId;
+    private String chatId; // NEW: Store the chat document ID
     private Uri selectedImageUri;
     private android.app.AlertDialog loadingDialog;
     private ActivityResultLauncher<String> imagePickerLauncher;
@@ -82,6 +84,11 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
+        // NEW: Generate chatId
+        chatId = currentUserId.compareTo(receiverId) < 0
+                ? currentUserId + "_" + receiverId
+                : receiverId + "_" + currentUserId;
+
         markChatAsRead();
         markMessagesAsRead();
 
@@ -101,7 +108,6 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(messageAdapter);
 
-        // Initialize image picker launcher
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -112,7 +118,6 @@ public class ChatActivity extends AppCompatActivity {
                 }
         );
 
-        // Set up upload image button click listener
         uploadImageBtn.setOnClickListener(v -> openGallery());
 
         loadMessages();
@@ -135,7 +140,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void handleImageSelected(Uri imageUri) {
-        // Check if blocked before sending image
         checkIfBlockedBeforeSendingImage(imageUri);
     }
 
@@ -158,7 +162,6 @@ public class ChatActivity extends AppCompatActivity {
                                     if (otherDoc.exists()) {
                                         Toast.makeText(this, "You can't send a message. This user has blocked you.", Toast.LENGTH_SHORT).show();
                                     } else {
-                                        // Not blocked, proceed to upload
                                         sendImageMessage(imageUri);
                                     }
                                 });
@@ -167,44 +170,41 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void sendImageMessage(Uri imageUri) {
-        // Show loading dialog
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         builder.setMessage("Sending image...");
         builder.setCancelable(false);
         loadingDialog = builder.create();
         loadingDialog.show();
 
-        // Create a unique filename
         String fileName = "chat_images/" + currentUserId + "/" + System.currentTimeMillis() + ".jpg";
         StorageReference imageRef = storageRef.child(fileName);
 
-        // Upload image
         imageRef.putFile(imageUri)
                 .addOnSuccessListener(taskSnapshot -> {
-                    // Get download URL
                     imageRef.getDownloadUrl().addOnSuccessListener(downloadUri -> {
-                        // Create message with image URL
                         String imageUrl = downloadUri.toString();
                         Map<String, Object> messageData = new HashMap<>();
                         messageData.put("senderId", currentUserId);
                         messageData.put("receiverId", receiverId);
-                        messageData.put("message", ""); // Empty text for image messages
+                        messageData.put("messageText", ""); // Changed from "message" to "messageText"
                         messageData.put("imageUrl", imageUrl);
                         messageData.put("timestamp", Timestamp.now());
-                        messageData.put("isRead", false);
+                        messageData.put("isDelivered", true);
+                        messageData.put("isSystemMessage", false); // NEW
 
-                        firestore.collection("messages")
+                        // NEW: Save to subcollection
+                        firestore.collection("chats")
+                                .document(chatId)
+                                .collection("messages")
                                 .add(messageData)
                                 .addOnSuccessListener(documentReference -> {
                                     if (loadingDialog != null && loadingDialog.isShowing()) {
                                         loadingDialog.dismiss();
                                     }
                                     Toast.makeText(this, "Image sent!", Toast.LENGTH_SHORT).show();
-                                    // Scroll to bottom
                                     if (messages.size() > 0) {
                                         recyclerView.post(() -> recyclerView.smoothScrollToPosition(messages.size() - 1));
                                     }
-                                    // Update chat list
                                     updateChatList("📷 Image");
                                 })
                                 .addOnFailureListener(e -> {
@@ -220,24 +220,22 @@ public class ChatActivity extends AppCompatActivity {
                         loadingDialog.dismiss();
                     }
                     Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show();
-                })
-                .addOnProgressListener(snapshot -> {
-                    // Optional: show upload progress
-                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                    android.util.Log.d("ChatActivity", "Upload is " + progress + "% done");
                 });
     }
 
     private void markMessagesAsRead() {
-        firestore.collection("messages")
+        // NEW: Mark messages as read in subcollection
+        firestore.collection("chats")
+                .document(chatId)
+                .collection("messages")
                 .whereEqualTo("senderId", receiverId)
                 .whereEqualTo("receiverId", currentUserId)
-                .whereEqualTo("isRead", false)
+                .whereEqualTo("isDelivered", false)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot) {
                         doc.getReference().update(
-                                "isRead", true,
+                                "isDelivered", true,
                                 "readAt", Timestamp.now()
                         );
                     }
@@ -251,88 +249,88 @@ public class ChatActivity extends AppCompatActivity {
         markMessagesAsRead();
     }
 
-    private void checkIfBlockedStatus() {
-        firestore.collection("users")
-                .document(currentUserId)
-                .collection("blockedUsers")
-                .document(receiverId)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        disableMessaging("You blocked this user.");
-                    } else {
-                        firestore.collection("users")
-                                .document(receiverId)
-                                .collection("blockedUsers")
-                                .document(currentUserId)
-                                .get()
-                                .addOnSuccessListener(otherDoc -> {
-                                    if (otherDoc.exists()) {
-                                        disableMessaging("This user blocked you.");
-                                    } else {
-                                        enableMessaging();
-                                    }
-                                });
-                    }
-                });
-    }
-
-    private void disableMessaging(String reason) {
-        isBlocked = true;
-        editMessage.setEnabled(false);
-        btnSend.setEnabled(false);
-        uploadImageBtn.setEnabled(false);
-        editMessage.setHint(reason);
-        Toast.makeText(this, reason, Toast.LENGTH_SHORT).show();
-    }
-
-    private void enableMessaging() {
-        isBlocked = false;
-        editMessage.setEnabled(true);
-        btnSend.setEnabled(true);
-        uploadImageBtn.setEnabled(true);
-        editMessage.setHint("Type a message...");
-    }
-
     private void actuallySendMessage(String text) {
         Message message = new Message(currentUserId, receiverId, text, Timestamp.now());
-        firestore.collection("messages").add(message);
+
+        // NEW: Save to subcollection
+        firestore.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .add(message);
+
         if (messages.size() > 0) {
             recyclerView.post(() -> recyclerView.smoothScrollToPosition(messages.size() - 1));
         }
         updateChatList(text);
     }
 
+    // UPDATED: Load messages from subcollection
     private void loadMessages() {
-        firestore.collection("messages")
+        firestore.collection("chats")
+                .document(chatId)
+                .collection("messages")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
-                    if (error != null || value == null) return;
+                    if (error != null || value == null) {
+                        Log.e("ChatActivity", "Error loading messages: " + error);
+                        return;
+                    }
+
                     for (DocumentChange dc : value.getDocumentChanges()) {
-                        Message msg = dc.getDocument().toObject(Message.class);
-                        if ((msg.getSenderId().equals(currentUserId) && msg.getReceiverId().equals(receiverId)) ||
-                                (msg.getSenderId().equals(receiverId) && msg.getReceiverId().equals(currentUserId))) {
-                            switch (dc.getType()) {
-                                case ADDED:
-                                    boolean exists = false;
-                                    for (Message existingMsg : messages) {
-                                        if (existingMsg.equals(msg)) {
-                                            exists = true;
-                                            break;
-                                        }
+                        Message msg = new Message(); // Create empty message
+
+                        // Manually map all fields from Firestore
+                        Map<String, Object> data = dc.getDocument().getData();
+
+                        msg.setMessageText((String) data.get("messageText"));
+                        msg.setSenderId((String) data.get("senderId"));
+                        msg.setReceiverId((String) data.get("receiverId"));
+                        msg.setImageUrl((String) data.get("imageUrl"));
+                        msg.setTimestamp((Timestamp) data.get("timestamp"));
+
+                        // CRITICAL: Explicitly handle isSystemMessage
+                        Boolean isSystemMessage = (Boolean) data.get("isSystemMessage");
+                        msg.setSystemMessage(isSystemMessage != null && isSystemMessage);
+
+                        Boolean isDelivered = (Boolean) data.get("isDelivered");
+                        msg.setDelivered(isDelivered != null && isDelivered);
+
+                        // LOG FOR DEBUGGING
+                        Log.d("ChatActivity", "=================================");
+                        Log.d("ChatActivity", "Loading message from Firestore:");
+                        Log.d("ChatActivity", "  Text: " + msg.getMessageText());
+                        Log.d("ChatActivity", "  isSystemMessage from Firestore: " + data.get("isSystemMessage"));
+                        Log.d("ChatActivity", "  isSystemMessage() method: " + msg.isSystemMessage());
+                        Log.d("ChatActivity", "  SenderId: " + msg.getSenderId());
+                        Log.d("ChatActivity", "=================================");
+
+                        switch (dc.getType()) {
+                            case ADDED:
+                                boolean exists = false;
+                                for (Message existingMsg : messages) {
+                                    if (existingMsg.equals(msg)) {
+                                        exists = true;
+                                        break;
                                     }
-                                    if (!exists) {
-                                        messages.add(msg);
+                                }
+                                if (!exists) {
+                                    messages.add(msg);
+                                }
+                                break;
+                            case MODIFIED:
+                                for (int i = 0; i < messages.size(); i++) {
+                                    if (messages.get(i).equals(msg)) {
+                                        messages.set(i, msg);
+                                        break;
                                     }
-                                    break;
-                                case MODIFIED:
-                                    break;
-                                case REMOVED:
-                                    messages.removeIf(m -> m.equals(msg));
-                                    break;
-                            }
+                                }
+                                break;
+                            case REMOVED:
+                                messages.removeIf(m -> m.equals(msg));
+                                break;
                         }
                     }
+
                     messageAdapter.notifyDataSetChanged();
                     if (messages.size() > 0) {
                         recyclerView.post(() -> {
@@ -344,7 +342,13 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage(String text) {
         Message message = new Message(currentUserId, receiverId, text, Timestamp.now());
-        firestore.collection("messages").add(message);
+
+        // NEW: Save to subcollection
+        firestore.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .add(message);
+
         if (messages.size() > 0) {
             recyclerView.post(() -> {
                 recyclerView.smoothScrollToPosition(messages.size() - 1);
@@ -354,10 +358,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void checkIfBlockedBeforeSending(String messageText) {
-        String receiverId = this.receiverId;
-        String currentUserId = FirebaseAuth.getInstance().getUid();
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-
         firestore.collection("users")
                 .document(currentUserId)
                 .collection("blockedUsers")
@@ -384,12 +384,12 @@ public class ChatActivity extends AppCompatActivity {
                 });
     }
 
+    // NEW: Update to use "chats" collection instead of "chatList"
     private void updateChatList(String lastMessage) {
         android.util.Log.d("ChatActivity", "updateChatList() called");
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) return;
 
-        String chatId = currentUserId.compareTo(receiverId) < 0 ? currentUserId + "_" + receiverId : receiverId + "_" + currentUserId;
         String receiverName = getIntent().getStringExtra("receiverName");
         String receiverProfileUrl = getIntent().getStringExtra("profileImageUrl");
 
@@ -416,53 +416,55 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
 
-                    android.util.Log.d("ChatActivity", "Current user name: " + currentUserName);
-                    android.util.Log.d("ChatActivity", "Receiver name: " + receiverName);
-
-                    boolean currentUserIsUser1 = currentUserId.compareTo(receiverId) < 0;
+                    // Create/Update chat document in "chats" collection
                     Map<String, Object> chatData = new HashMap<>();
-                    chatData.put("participants", Arrays.asList(currentUserId, receiverId));
+                    chatData.put("users", Arrays.asList(currentUserId, receiverId));
                     chatData.put("lastMessage", lastMessage);
-                    chatData.put("timestamp", Timestamp.now());
-                    chatData.put("lastSenderId", currentUserId);
+                    chatData.put("lastMessageTime", Timestamp.now());
 
-                    if (currentUserIsUser1) {
-                        chatData.put("user1Id", currentUserId);
-                        chatData.put("user1Name", currentUserName);
-                        chatData.put("user1ProfileUrl", currentUserProfileUrl);
-                        chatData.put("user2Id", receiverId);
-                        chatData.put("user2Name", receiverName != null ? receiverName : "User");
-                        chatData.put("user2ProfileUrl", receiverProfileUrl != null ? receiverProfileUrl : "");
-                    } else {
-                        chatData.put("user1Id", receiverId);
-                        chatData.put("user1Name", receiverName != null ? receiverName : "User");
-                        chatData.put("user1ProfileUrl", receiverProfileUrl != null ? receiverProfileUrl : "");
-                        chatData.put("user2Id", currentUserId);
-                        chatData.put("user2Name", currentUserName);
-                        chatData.put("user2ProfileUrl", currentUserProfileUrl);
-                    }
-
-                    chatData.put("unread", true);
-
-                    android.util.Log.d("ChatActivity", "Saving to Firestore with user1Name: " + chatData.get("user1Name") + ", user2Name: " + chatData.get("user2Name"));
-
-                    firestore.collection("chatList")
+                    firestore.collection("chats")
                             .document(chatId)
                             .set(chatData, com.google.firebase.firestore.SetOptions.merge())
                             .addOnSuccessListener(aVoid -> {
-                                android.util.Log.d("ChatActivity", "Chat list updated successfully");
+                                android.util.Log.d("ChatActivity", "Chat updated successfully");
                             })
                             .addOnFailureListener(e -> {
-                                android.util.Log.e("ChatActivity", "Error updating chat list", e);
+                                android.util.Log.e("ChatActivity", "Error updating chat", e);
                             });
-                })
-                .addOnFailureListener(e -> {
-                    android.util.Log.e("ChatActivity", "Error fetching current user data", e);
+
+                    // Also update chatList for compatibility
+                    boolean currentUserIsUser1 = currentUserId.compareTo(receiverId) < 0;
+                    Map<String, Object> chatListData = new HashMap<>();
+                    chatListData.put("participants", Arrays.asList(currentUserId, receiverId));
+                    chatListData.put("lastMessage", lastMessage);
+                    chatListData.put("timestamp", Timestamp.now());
+                    chatListData.put("lastSenderId", currentUserId);
+
+                    if (currentUserIsUser1) {
+                        chatListData.put("user1Id", currentUserId);
+                        chatListData.put("user1Name", currentUserName);
+                        chatListData.put("user1ProfileUrl", currentUserProfileUrl);
+                        chatListData.put("user2Id", receiverId);
+                        chatListData.put("user2Name", receiverName != null ? receiverName : "User");
+                        chatListData.put("user2ProfileUrl", receiverProfileUrl != null ? receiverProfileUrl : "");
+                    } else {
+                        chatListData.put("user1Id", receiverId);
+                        chatListData.put("user1Name", receiverName != null ? receiverName : "User");
+                        chatListData.put("user1ProfileUrl", receiverProfileUrl != null ? receiverProfileUrl : "");
+                        chatListData.put("user2Id", currentUserId);
+                        chatListData.put("user2Name", currentUserName);
+                        chatListData.put("user2ProfileUrl", currentUserProfileUrl);
+                    }
+
+                    chatListData.put("unread", true);
+
+                    firestore.collection("chatList")
+                            .document(chatId)
+                            .set(chatListData, com.google.firebase.firestore.SetOptions.merge());
                 });
     }
 
     private void markChatAsRead() {
-        String chatId = currentUserId.compareTo(receiverId) < 0 ? currentUserId + "_" + receiverId : receiverId + "_" + currentUserId;
         firestore.collection("chatList")
                 .document(chatId)
                 .update("unread", false)

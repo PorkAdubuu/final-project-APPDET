@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light_gray">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/blue"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_back_arrow"
+                android:contentDescription="Back"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Match Details"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:fontFamily="@font/montserrat_extrabold"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
+
+        <!-- Match Quality Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMatchQuality"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvSimilarityScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="75% Match"
+                    android:textSize="32sp"
+                    android:fontFamily="@font/montserrat_extrabold"
+                    android:textColor="@color/blue" />
+
+                <TextView
+                    android:id="@+id/tvMatchQuality"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Excellent Match"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/montserrat_extrabold"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tvMatchReason"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Same category, similar description"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Match Analysis Chips -->
+        <LinearLayout
+            android:id="@+id/matchAnalysisLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginHorizontal="16dp"
+            android:visibility="gone">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category Match"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Location Match"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipKeywords"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keywords Match" />
+        </LinearLayout>
+
+        <!-- Lost Item Section -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LOST ITEM"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/montserrat_extrabold"
+                    android:textColor="@color/red"
+                    android:background="@drawable/lost_badge_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp" />
+
+                <ImageView
+                    android:id="@+id/imgLostItem"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="centerCrop"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rounded_corner"
+                    android:contentDescription="Lost item image" />
+
+                <TextView
+                    android:id="@+id/tvLostTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Item Title"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/montserrat_extrabold"
+                    android:textColor="@color/black"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:id="@+id/tvLostCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textSize="14sp"
+                    android:textColor="@color/blue"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tvLostLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last seen: Location"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray"
+                    android:layout_marginTop="4dp"
+                    android:drawableStart="@drawable/ic_location"
+                    android:drawablePadding="4dp" />
+
+                <TextView
+                    android:id="@+id/tvLostDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Description of the lost item"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/tvLostDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reported: Date"
+                    android:textSize="12sp"
+                    android:textColor="@color/gray"
+                    android:layout_marginTop="8dp" />
+
+                <!-- Reporter Contact Info -->
+                <LinearLayout
+                    android:id="@+id/lostReporterSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:padding="12dp"
+                    android:background="@drawable/rounded_light_bg">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Reporter Contact"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/montserrat_extrabold"
+                        android:textColor="@color/gray" />
+
+                    <TextView
+                        android:id="@+id/tvLostReporterName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="John Doe"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/montserrat_extrabold"
+                        android:textColor="@color/black"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvLostReporterEmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="email@example.com"
+                        android:textSize="14sp"
+                        android:textColor="@color/gray"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvLostReporterPhone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+1234567890"
+                        android:textSize="14sp"
+                        android:textColor="@color/gray"
+                        android:layout_marginTop="2dp" />
+
+                    <Button
+                        android:id="@+id/btnContactLostReporter"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Message Reporter"
+                        android:backgroundTint="@color/blue"
+                        android:textColor="@color/white"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Found Item Section -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FOUND ITEM"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/montserrat_extrabold"
+
+                    android:background="@drawable/found_badge_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp" />
+
+                <ImageView
+                    android:id="@+id/imgFoundItem"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="centerCrop"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rounded_corner"
+                    android:contentDescription="Found item image" />
+
+                <TextView
+                    android:id="@+id/tvFoundTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Item Title"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/montserrat_extrabold"
+                    android:textColor="@color/black"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:id="@+id/tvFoundCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textSize="14sp"
+                    android:textColor="@color/blue"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tvFoundLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Found at: Location"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray"
+                    android:layout_marginTop="4dp"
+                    android:drawableStart="@drawable/ic_location"
+                    android:drawablePadding="4dp" />
+
+                <TextView
+                    android:id="@+id/tvFoundDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Description of the found item"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/tvFoundDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reported: Date"
+                    android:textSize="12sp"
+                    android:textColor="@color/gray"
+                    android:layout_marginTop="8dp" />
+
+                <!-- Reporter Contact Info -->
+                <LinearLayout
+                    android:id="@+id/foundReporterSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:padding="12dp"
+                    android:background="@drawable/rounded_light_bg">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Reporter Contact"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/montserrat_extrabold"
+                        android:textColor="@color/gray" />
+
+                    <TextView
+                        android:id="@+id/tvFoundReporterName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jane Smith"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/montserrat_extrabold"
+                        android:textColor="@color/black"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvFoundReporterEmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="email@example.com"
+                        android:textSize="14sp"
+                        android:textColor="@color/gray"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvFoundReporterPhone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+1234567890"
+                        android:textSize="14sp"
+                        android:textColor="@color/gray"
+                        android:layout_marginTop="2dp" />
+
+                    <Button
+                        android:id="@+id/btnContactFoundReporter"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Contact Reporter"
+                        android:backgroundTint="@color/blue"
+                        android:textColor="@color/white"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Loading Indicator -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="32dp"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

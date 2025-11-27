@@ -34,7 +34,7 @@
         android:id="@+id/textView12"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fill out the form below to report your lost item on campus."
+        android:text="Fill out the form below to report your found item on campus."
         android:textColor="@color/white"
         android:textSize="12sp"
         android:textStyle="bold"
@@ -166,7 +166,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
-                    android:gravity="center_vertical"> <!-- Align the dropdown vertically -->
+                    android:gravity="center_vertical">
 
                     <AutoCompleteTextView
                         android:id="@+id/category"
@@ -383,6 +383,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- FIXED: Found At dropdown with matching font size -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -393,19 +394,32 @@
                     android:id="@+id/textView23"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="15dp"
+                    android:layout_marginRight="28dp"
+                    android:gravity="center_vertical"
                     android:text="Found At"
                     android:textColor="@color/gray"
                     android:textSize="18dp" />
 
-                <EditText
-                    android:id="@+id/lastSeenText"
-                    android:layout_width="250dp"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/edittext_background"
-                    android:inputType="text"
-                    android:textColor="@color/black"
-                    android:textSize="20dp" />
+                    android:layout_marginTop="0dp"
+                    android:gravity="center_vertical">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/locationDropdown"
+                        android:layout_width="250dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/border"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="0dp"
+                        android:paddingTop="4dp"
+                        android:paddingRight="0dp"
+                        android:paddingBottom="4dp"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
 
@@ -564,7 +578,7 @@
             android:text="Cancel"
             android:paddingLeft="40dp"
             android:paddingRight="40dp"
-            android:textSize="20sp"
+            android:textSize="15sp"
             android:layout_marginRight="50dp"
             android:backgroundTint="@color/white"
             android:textColor="@color/black"
@@ -579,8 +593,9 @@
             android:text="Publish"
             android:paddingLeft="40dp"
             android:paddingRight="40dp"
-            android:textSize="20sp"
+            android:textSize="15sp"
             android:backgroundTint="@color/blue"
+
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/button"
             app:layout_constraintStart_toStartOf="parent" />

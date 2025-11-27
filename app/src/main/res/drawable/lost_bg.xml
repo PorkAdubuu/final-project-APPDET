@@ -3,6 +3,6 @@
     android:shape="oval">
 
     <!-- Background color for LOST -->
-    <solid android:color="#3a68dc"/>
+    <solid android:color="#4dbdf7"/>
 
 </shape>

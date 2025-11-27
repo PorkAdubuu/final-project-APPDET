@@ -8,15 +8,7 @@
     android:background="@color/light_gray"
     tools:context=".HomeActivity">
 
-    <!-- Main frame container where fragments will be loaded -->
-    <FrameLayout
-        android:id="@+id/frame_main"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" /> <!-- space for BottomNavigationView -->
+
 
     <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

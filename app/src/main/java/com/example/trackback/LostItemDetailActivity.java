@@ -3,6 +3,7 @@ package com.example.trackback;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -13,8 +14,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LostItemDetailActivity extends AppCompatActivity {
 
@@ -28,6 +38,7 @@ public class LostItemDetailActivity extends AppCompatActivity {
     private String documentId;
     private String imageUrl;
     private String currentReportType;
+    private String itemOwnerId; // NEW: To track the item owner
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -143,6 +154,9 @@ public class LostItemDetailActivity extends AppCompatActivity {
                         .into(itemImageView);
             }
 
+            // NEW: Get the item owner's user ID
+            itemOwnerId = doc.getString("userId");
+
             currentReportType = doc.getString("reportType");
 
             // Update UI based on report type
@@ -194,6 +208,9 @@ public class LostItemDetailActivity extends AppCompatActivity {
                                 }
                                 markAsFoundBtn.setVisibility(View.GONE);
 
+                                // NEW: Send system message to all conversations related to this item
+                                sendSystemMessageToAllChats();
+
                                 // Go back to refresh the list
                                 finish();
                             })
@@ -205,6 +222,80 @@ public class LostItemDetailActivity extends AppCompatActivity {
                 .show();
     }
 
+    // NEW METHOD: Send system message to all related chats
+    // Add this method to your LostItemDetailActivity
+
+    private void sendSystemMessageToAllChats() {
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Find all chats where the current user is involved
+        db.collection("chats")
+                .whereArrayContains("users", currentUserId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot chatDoc : queryDocumentSnapshots) {
+                        String chatId = chatDoc.getId();
+
+                        // Get the users array
+                        List<String> users = (List<String>) chatDoc.get("users");
+                        if (users != null && users.size() == 2) {
+                            // Determine the other user
+                            String otherUserId = users.get(0).equals(currentUserId)
+                                    ? users.get(1)
+                                    : users.get(0);
+
+                            // Send system message to this chat
+                            sendSystemMessageToChat(chatId, currentUserId, otherUserId);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("MarkAsFound", "Failed to find chats: " + e.getMessage());
+                });
+    }
+
+    private void sendSystemMessageToChat(String chatId, String senderId, String receiverId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Create system message data
+        Map<String, Object> systemMessage = new HashMap<>();
+        systemMessage.put("messageText", "The item has been marked as found"); // REMOVED ✓
+        systemMessage.put("senderId", senderId);
+        systemMessage.put("receiverId", receiverId);
+        systemMessage.put("timestamp", com.google.firebase.Timestamp.now());
+        systemMessage.put("isSystemMessage", true);
+        systemMessage.put("isDelivered", true);
+
+        // DEBUG: Log the system message data
+        android.util.Log.d("SystemMessage", "Creating system message with data: " + systemMessage.toString());
+
+        // Add message to the messages subcollection
+        db.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .add(systemMessage)
+                .addOnSuccessListener(documentReference -> {
+                    android.util.Log.d("SystemMessage", "System message successfully saved!");
+
+                    // Update the chat's lastMessage
+                    Map<String, Object> chatUpdate = new HashMap<>();
+                    chatUpdate.put("lastMessage", "The item has been marked as found");
+                    chatUpdate.put("lastMessageTime", com.google.firebase.Timestamp.now());
+
+                    db.collection("chats")
+                            .document(chatId)
+                            .update(chatUpdate)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("SystemMessage", "System message sent to chat: " + chatId);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("SystemMessage", "Failed to send system message: " + e.getMessage());
+                });
+    }
     private void deleteItem() {
         // Show confirmation dialog
         new androidx.appcompat.app.AlertDialog.Builder(this)

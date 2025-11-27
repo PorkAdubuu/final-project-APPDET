@@ -81,13 +81,21 @@
             android:name=".ChatActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".MessagesActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize|stateHidden" />
+
+        <activity android:name=".TrashActivity" />
+
+        <activity
+            android:name=".MatchDetailActivity"
+            android:label="Match Details"
+            android:parentActivityName=".HomeActivity"
+            android:theme="@style/Theme.TrackBack" />
 
         <!-- Firebase Messaging Service -->
         <service

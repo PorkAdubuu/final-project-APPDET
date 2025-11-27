@@ -28,7 +28,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Adapter for displaying chat list with Archive, Block, and Delete functionality
+ * Adapter for displaying chat list with Block and Delete functionality
+ * Archive removed from messages - only used for posts
  */
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHolder> {
 
@@ -58,16 +59,11 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
         // Set name
         holder.nameText.setText(chat.getName() != null ? chat.getName() : "User");
 
-        // ✅ Add "You: " prefix and "· Seen" if message was read
+        // Add "You: " prefix if current user sent the last message
         String displayMessage = chat.getLastMessage();
         if (displayMessage != null && !displayMessage.isEmpty()) {
             if (chat.getLastSenderId() != null && chat.getLastSenderId().equals(currentUserId)) {
-                // You sent the last message
-                if (!chat.isUnread()) {
-                    displayMessage = "You: " + displayMessage;
-                } else {
-                    displayMessage = "You: " + displayMessage;
-                }
+                displayMessage = "You: " + displayMessage;
             }
         }
         holder.lastMessageText.setText(displayMessage);
@@ -107,7 +103,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
                     ? chat.getSenderId()
                     : chat.getReceiverId();
 
-
             intent.putExtra("receiverId", otherUserId);
             intent.putExtra("receiverName", chat.getName());
             intent.putExtra("profileImageUrl", chat.getProfileImageUrl());
@@ -115,8 +110,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
             context.startActivity(intent);
         });
 
-
-        // Long press - show options bottom sheet
+        // Long press - show options bottom sheet (Block & Delete only)
         holder.itemView.setOnLongClickListener(v -> {
             showOptionsBottomSheet(chat, position);
             return true;
@@ -124,7 +118,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
     }
 
     /**
-     * Show bottom sheet with Block, Archive, Delete options
+     * Show bottom sheet with Block and Delete options only (Archive removed)
      */
     private void showOptionsBottomSheet(ChatListItem chat, int position) {
         BottomSheetDialog bottomSheet = new BottomSheetDialog(context);
@@ -138,12 +132,9 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
             showBlockConfirmation(chat, position);
         });
 
-        // Archive option
+        // Hide archive option (or remove from layout completely)
         LinearLayout archiveOption = view.findViewById(R.id.archiveOption);
-        archiveOption.setOnClickListener(v -> {
-            bottomSheet.dismiss();
-            archiveChat(chat, position);
-        });
+        archiveOption.setVisibility(View.GONE);
 
         // Delete option
         LinearLayout deleteOption = view.findViewById(R.id.deleteOption);
@@ -226,31 +217,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
                 .document(chatId)
                 .collection("messages")
                 .add(systemMessage);
-    }
-
-    /**
-     * Archive a chat - sets archivedFor_[userId] flag
-     */
-    private void archiveChat(ChatListItem chat, int position) {
-        String chatId = getChatId(currentUserId, chat.getReceiverId());
-
-        Map<String, Object> archiveData = new HashMap<>();
-        archiveData.put("archivedFor_" + currentUserId, true);
-
-        firestore.collection("chatList")
-                .document(chatId)
-                .update(archiveData)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(context, "Chat archived", Toast.LENGTH_SHORT).show();
-
-                    // Remove from chat list
-                    chatList.remove(position);
-                    notifyItemRemoved(position);
-                    notifyItemRangeChanged(position, chatList.size());
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Failed to archive chat", Toast.LENGTH_SHORT).show();
-                });
     }
 
     /**

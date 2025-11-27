@@ -61,8 +61,6 @@ public class ReportlostActivity extends AppCompatActivity {
         EditText lastNameText = findViewById(R.id.lastNameText);
         EditText phoneNumber = findViewById(R.id.phoneNumber);
 
-
-
         EditText dateText = findViewById(R.id.dateText);
         ImageButton datePickerBtn = findViewById(R.id.datePicker);
         dateText.setKeyListener(null);
@@ -71,15 +69,35 @@ public class ReportlostActivity extends AppCompatActivity {
         ImageButton timePickerBtn = findViewById(R.id.timePicker);
         timeText.setKeyListener(null);
 
+        // Category dropdown with consistent styling
         String[] categories = {
                 "Gadgets", "Personal Belongings", "Bags", "Accessories",
                 "Clothing", "School Supplies", "Drinkware", "Others"
         };
         AutoCompleteTextView autoComplete = findViewById(R.id.category);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.dropdown_item, categories);
-        autoComplete.setAdapter(adapter);
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, categories);
+        autoComplete.setAdapter(categoryAdapter);
 
+        // Location dropdown with null check and consistent styling
+        AutoCompleteTextView locationDropdown = findViewById(R.id.locationDropdown);
 
+        if (locationDropdown != null) {
+            String[] locations = {
+                    "Umak Oval", "HPSB", "Admin Building", "Academic Building 1",
+                    "Academic Building 2", "Library", "Cafeteria"
+            };
+
+            // Use the same dropdown_item layout for consistency
+            ArrayAdapter<String> locationAdapter = new ArrayAdapter<>(
+                    this,
+                    R.layout.dropdown_item,  // Changed to use same layout as category
+                    locations
+            );
+
+            locationDropdown.setAdapter(locationAdapter);
+        } else {
+            Log.e("ReportlostActivity", "locationDropdown not found in layout!");
+        }
 
         datePickerBtn.setOnClickListener(v -> {
             MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
@@ -125,13 +143,22 @@ public class ReportlostActivity extends AppCompatActivity {
             firstNameText.setText("");
             lastNameText.setText("");
             phoneNumber.setText("");
-
+            if (locationDropdown != null) {
+                locationDropdown.setText("");
+            }
+            fileNameText.setText("");
+            selectedImageUri = null;
         });
 
         findViewById(R.id.publishBtn).setOnClickListener(v -> {
             String userEmail = "";
             if (mAuth.getCurrentUser() != null) {
                 userEmail = mAuth.getCurrentUser().getEmail();
+            }
+
+            String location = "";
+            if (locationDropdown != null) {
+                location = locationDropdown.getText().toString();
             }
 
             publishLostItem(
@@ -141,15 +168,15 @@ public class ReportlostActivity extends AppCompatActivity {
                     dateText.getText().toString(),
                     timeText.getText().toString(),
                     additionalInfoText.getText().toString(),
-                    lastSeenText.getText().toString(),
+                    location,  // Changed from lastSeenText to location
                     moreInfoText.getText().toString(),
                     firstNameText.getText().toString(),
                     lastNameText.getText().toString(),
                     phoneNumber.getText().toString(),
-                    userEmail  // use email from FirebaseAuth here
+                    userEmail,
+                    location  // Keep this for backward compatibility
             );
         });
-
     }
 
     private void openImageChooser() {
@@ -180,11 +207,13 @@ public class ReportlostActivity extends AppCompatActivity {
     private void publishLostItem(String itemLost, String category, String brand, String date,
                                  String time, String additionalInfo, String lastSeen,
                                  String moreInfo, String firstName, String lastName, String phone,
-                                 String email) {
+                                 String email, String location) {
 
+        // Validation - location is now lastSeen since we're using dropdown
         if (itemLost.isEmpty() || category.isEmpty() || brand.isEmpty() || date.isEmpty() ||
                 time.isEmpty() || additionalInfo.isEmpty() || lastSeen.isEmpty() ||
-                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+                moreInfo.isEmpty() || firstName.isEmpty() || lastName.isEmpty() ||
+                phone.isEmpty() || email.isEmpty()) {
 
             Toast.makeText(this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
             return;
@@ -209,48 +238,59 @@ public class ReportlostActivity extends AppCompatActivity {
                             LostItem lostItem = new LostItem(
                                     itemLost, category, brand, date, time, additionalInfo,
                                     lastSeen, moreInfo, firstName, lastName, phone,
-                                    email, profileUrl, imageUrl, userId, "Lost"
+                                    email, profileUrl, imageUrl, userId, "LOST"  // Changed to "LOST" for consistency
                             );
 
                             lostItem.setDocumentId(docId);
 
+
                             db.collection("lostItems").document(docId).set(lostItem)
                                     .addOnSuccessListener(aVoid -> {
-                                        // ✅ Create notification (use item image URL)
+                                        // Create notification for Lost item
                                         NotificationModel notification = new NotificationModel(
-                                                docId,
-                                                firstName,
-                                                lastName,
-                                                profileUrl,
-                                                date,
-                                                time,
-                                                "Lost",
-                                                false,
+                                                docId,           // documentId - the lost item document ID
+                                                firstName,       // fname
+                                                lastName,        // lastName
+                                                profileUrl,      // profileUrl - poster's profile image
+                                                date,           // date
+                                                time,           // time
+                                                "Lost",         // reportType
+                                                false,          // read status
                                                 "active"
-
                                         );
 
-                                        // ✅ Send to all users except current user
+                                        // Send notification to all users except current user
                                         db.collection("users").get().addOnSuccessListener(querySnapshot -> {
                                                     for (DocumentSnapshot userDoc : querySnapshot.getDocuments()) {
                                                         String otherUserId = userDoc.getId();
 
                                                         if (!otherUserId.equals(userId)) {
+                                                            // Generate notification document ID
                                                             String notifId = db.collection("users")
                                                                     .document(otherUserId)
                                                                     .collection("notifications")
                                                                     .document().getId();
 
+                                                            // Set the notification document ID in the model
+                                                            notification.setNotificationDocId(notifId);
+
+                                                            // Save notification to user's notifications subcollection
                                                             db.collection("users").document(otherUserId)
                                                                     .collection("notifications").document(notifId)
-                                                                    .set(notification);
+                                                                    .set(notification)
+                                                                    .addOnSuccessListener(aVoid2 -> {
+                                                                        Log.d("Notification", "Notification sent to user: " + otherUserId);
+                                                                    })
+                                                                    .addOnFailureListener(e -> {
+                                                                        Log.e("Notification", "Failed to send notification to user: " + otherUserId, e);
+                                                                    });
                                                         }
                                                     }
 
                                                     dismissLoadingDialog();
                                                     showSuccessDialog();
 
-                                                    // Clear all fields except email
+                                                    // Clear all fields
                                                     ((EditText) findViewById(R.id.itemLostText)).setText("");
                                                     ((AutoCompleteTextView) findViewById(R.id.category)).setText("");
                                                     ((EditText) findViewById(R.id.brandText)).setText("");
@@ -263,14 +303,19 @@ public class ReportlostActivity extends AppCompatActivity {
                                                     ((EditText) findViewById(R.id.lastNameText)).setText("");
                                                     ((EditText) findViewById(R.id.phoneNumber)).setText("");
 
+                                                    AutoCompleteTextView locationDropdown = findViewById(R.id.locationDropdown);
+                                                    if (locationDropdown != null) {
+                                                        locationDropdown.setText("");
+                                                    }
+
                                                     fileNameText.setText("");
                                                     selectedImageUri = null;
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     dismissLoadingDialog();
-                                                    Toast.makeText(this, "Error uploading notification: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                    Log.e("Notification", "Error getting users for notifications", e);
+                                                    Toast.makeText(this, "Error sending notifications: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                                 });
-
                                     })
                                     .addOnFailureListener(e -> {
                                         dismissLoadingDialog();
@@ -288,8 +333,6 @@ public class ReportlostActivity extends AppCompatActivity {
             Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 
     private void showSuccessDialog() {
         report_success_dialog dialog = new report_success_dialog();

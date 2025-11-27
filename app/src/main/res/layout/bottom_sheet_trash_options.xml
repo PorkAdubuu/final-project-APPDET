@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottomSheetContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -9,7 +7,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Handle bar for bottom sheet -->
+    <!-- Handle bar -->
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
@@ -18,9 +16,9 @@
         android:background="@color/gray"
         android:alpha="0.5" />
 
-    <!-- Archive Menu Item -->
+    <!-- Restore option -->
     <LinearLayout
-        android:id="@+id/archivedChatsOption"
+        android:id="@+id/menu_restore"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/selectableItemBackground"
@@ -36,26 +34,21 @@
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_archive"
-            />
+            android:src="@drawable/ic_restore" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/montserrat_extrabold"
-            android:text="Archive"
-
+            android:text="Restore"
             android:textColor="@color/blue"
             android:textSize="16sp" />
-
     </LinearLayout>
 
-
-
-    <!-- About Menu Item -->
+    <!-- Delete permanently option -->
     <LinearLayout
-        android:id="@+id/blockedAccountsOption"
+        android:id="@+id/menu_delete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/selectableItemBackground"
@@ -71,50 +64,16 @@
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/block_ic"
-            />
+            android:src="@drawable/ic_delete" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/montserrat_extrabold"
-            android:text="Blocked Accounts"
-            android:textColor="@color/blue"
+            android:text="Delete Permanently"
+            android:textColor="@color/red"
             android:textSize="16sp" />
-
-    </LinearLayout>
-
-    <!-- Logout Menu Item -->
-    <LinearLayout
-        android:id="@+id/LogoutOption"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:minHeight="56dp"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="12dp">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_logout"
-             />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="@font/montserrat_extrabold"
-            android:text="Log out"
-            android:textColor="@color/blue"
-            android:textSize="16sp" />
-
     </LinearLayout>
 
 </LinearLayout>

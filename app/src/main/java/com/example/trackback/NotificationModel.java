@@ -4,27 +4,31 @@ public class NotificationModel {
     private String documentId;
     private String fname;
     private String lastName;
-    private String  profileUrl;
+    private String profileUrl;
     private String date;
     private String time;
     private String reportType;
     private boolean read;
     private String notificationDocId;
-
     private String status;
     private long deletedAt;
 
+    private String notificationType;
+    private String matchId;
+    private String lostItemId;
+    private String foundItemId;
+    private String itemName;
+
     public NotificationModel() {
-        // Required empty constructor for Firestore
     }
 
     public NotificationModel(String documentId, String fname, String lastName,
-                             String  profileUrl, String date, String time,
+                             String profileUrl, String date, String time,
                              String reportType, boolean read, String status) {
         this.documentId = documentId;
         this.fname = fname;
         this.lastName = lastName;
-        this.profileUrl =  profileUrl;
+        this.profileUrl = profileUrl;
         this.date = date;
         this.time = time;
         this.reportType = reportType;
@@ -32,21 +36,30 @@ public class NotificationModel {
         this.status = status;
     }
 
-    // Getters and Setters
     public String getStatus() {
         return status;
     }
-    public long getDeletedAt() { return deletedAt; }
+
+    public long getDeletedAt() {
+        return deletedAt;
+    }
+
     public void setStatus(String status) {
         this.status = status;
     }
-    public void setDeletedAt(long deletedAt) { this.deletedAt = deletedAt; }
+
+    public void setDeletedAt(long deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     public String getNotificationDocId() {
         return notificationDocId;
     }
+
     public void setNotificationDocId(String notificationDocId) {
         this.notificationDocId = notificationDocId;
     }
+
     public String getDocumentId() {
         return documentId;
     }
@@ -111,5 +124,43 @@ public class NotificationModel {
         this.read = read;
     }
 
+    public String getNotificationType() {
+        return notificationType;
+    }
 
+    public void setNotificationType(String notificationType) {
+        this.notificationType = notificationType;
+    }
+
+    public String getMatchId() {
+        return matchId;
+    }
+
+    public void setMatchId(String matchId) {
+        this.matchId = matchId;
+    }
+
+    public String getLostItemId() {
+        return lostItemId;
+    }
+
+    public void setLostItemId(String lostItemId) {
+        this.lostItemId = lostItemId;
+    }
+
+    public String getFoundItemId() {
+        return foundItemId;
+    }
+
+    public void setFoundItemId(String foundItemId) {
+        this.foundItemId = foundItemId;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
 }

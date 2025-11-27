@@ -5,14 +5,11 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.FrameLayout;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -26,6 +23,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.HashMap;
 
+import android.widget.FrameLayout;
+import android.view.View;
+
 public class HomeActivity extends AppCompatActivity {
 
     private static final String TAG = "HomeActivity";
@@ -35,6 +35,9 @@ public class HomeActivity extends AppCompatActivity {
     private ListenerRegistration notifListener;
     private ActivityResultLauncher<String> requestPermissionLauncher;
 
+    private FirebaseAuth mAuth;
+    private String currentUserId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +46,7 @@ public class HomeActivity extends AppCompatActivity {
         overlay = findViewById(R.id.frame_overlay);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
         // Initialize permission launcher for notifications (Android 13+)
         requestPermissionLauncher = registerForActivityResult(
@@ -60,6 +64,7 @@ public class HomeActivity extends AppCompatActivity {
         // Ensure user document exists
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
+            currentUserId = user.getUid();
             db.collection("users")
                     .document(user.getUid())
                     .set(new HashMap<>(), SetOptions.merge());
@@ -71,47 +76,52 @@ public class HomeActivity extends AppCompatActivity {
 
         // Floating Action Button
         FloatingActionButton fabAdd = findViewById(R.id.floatingActionButtonAdd);
-        fabAdd.setOnClickListener(view -> {
-            AddReportDialogFragment dialog = new AddReportDialogFragment();
-            dialog.show(getSupportFragmentManager(), "AddReportDialog");
-        });
-
-        // BottomNavigationView item selection listener
-        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-
-            if (itemId == R.id.nav_home) {
-                overlay.setVisibility(View.VISIBLE);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_overlay, new HomeFragment())
-                        .commit();
-                return true;
-            } else if (itemId == R.id.nav_search) {
-                overlay.setVisibility(View.VISIBLE);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_overlay, new ItemsFragment())
-                        .commit();
-                return true;
-            } else if (itemId == R.id.nav_add) {
+        if (fabAdd != null) {
+            fabAdd.setOnClickListener(view -> {
                 AddReportDialogFragment dialog = new AddReportDialogFragment();
                 dialog.show(getSupportFragmentManager(), "AddReportDialog");
-                return true;
-            } else if (itemId == R.id.nav_notif) {
-                overlay.setVisibility(View.VISIBLE);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_overlay, new NotificationsFragment())
-                        .commit();
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                overlay.setVisibility(View.VISIBLE);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_overlay, new FragmentProfile())
-                        .commit();
-                return true;
-            } else {
-                return false;
-            }
-        });
+            });
+        }
+
+        // BottomNavigationView item selection listener
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+
+                if (itemId == R.id.nav_home) {
+                    // Show HomeFragment
+                    overlay.setVisibility(View.VISIBLE);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_overlay, new HomeFragment())
+                            .commit();
+                    return true;
+                } else if (itemId == R.id.nav_search) {
+                    overlay.setVisibility(View.VISIBLE);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_overlay, new ItemsFragment())
+                            .commit();
+                    return true;
+                } else if (itemId == R.id.nav_add) {
+                    AddReportDialogFragment dialog = new AddReportDialogFragment();
+                    dialog.show(getSupportFragmentManager(), "AddReportDialog");
+                    return true;
+                } else if (itemId == R.id.nav_notif) {
+                    overlay.setVisibility(View.VISIBLE);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_overlay, new NotificationsFragment())
+                            .commit();
+                    return true;
+                } else if (itemId == R.id.nav_profile) {
+                    overlay.setVisibility(View.VISIBLE);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frame_overlay, new FragmentProfile())
+                            .commit();
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
 
         // Show HomeFragment on first launch
         if (savedInstanceState == null) {
@@ -119,6 +129,9 @@ public class HomeActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_overlay, new HomeFragment())
                     .commit();
+            if (bottomNavigationView != null) {
+                bottomNavigationView.setSelectedItemId(R.id.nav_home);
+            }
         }
 
         // Fetch and update notification badge count on startup
@@ -171,24 +184,29 @@ public class HomeActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
-            overlay.setVisibility(View.GONE);
+        if (overlay != null && overlay.getVisibility() == View.VISIBLE) {
+            // Check if we're on home fragment
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_overlay) instanceof HomeFragment) {
+                // If on home, exit app
+                super.onBackPressed();
+            } else {
+                // Go back to home fragment
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_overlay, new HomeFragment())
+                        .commit();
+                if (bottomNavigationView != null) {
+                    bottomNavigationView.setSelectedItemId(R.id.nav_home);
+                }
+            }
         } else {
             super.onBackPressed();
         }
     }
 
-    // Optional helper method to replace fragments with backstack
-    private void replaceFragment(androidx.fragment.app.Fragment fragment) {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_main, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-
     // Update notification badge on BottomNavigationView
     public void updateNotificationBadge(int unreadCount) {
+        if (bottomNavigationView == null) return;
+
         if (unreadCount > 0) {
             BadgeDrawable badge = bottomNavigationView.getOrCreateBadge(R.id.nav_notif);
             badge.setVisible(true);

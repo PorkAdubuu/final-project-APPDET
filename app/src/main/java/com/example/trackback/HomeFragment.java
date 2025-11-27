@@ -1,32 +1,41 @@
 package com.example.trackback;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.graphics.Color;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,21 +44,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import android.content.Intent;
-
 public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";
 
     private TextView welcomeTextView;
     private ImageView profileImageView;
-    private RecyclerView recyclerView;
-    private List<ListLostItem> lostItemList = new ArrayList<>();
-    private ListLostItemsAdapter adapter;
     private FirebaseFirestore db;
     private PieChart pieChart;
     private TextView tvFound, tvLost;
+    private TabLayout contentTabLayout;
+    private ViewPager2 contentViewPager;
+    private ProgressBar analyticsProgressBar;  // Add loading indicator
 
-    // Message badge variables
     private TextView messageBadge;
     private ListenerRegistration messageListener;
     private String currentUserId;
@@ -58,50 +64,18 @@ public class HomeFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Set up RecyclerView
-        recyclerView = view.findViewById(R.id.recentItemsRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Initialize Firestore
         db = FirebaseFirestore.getInstance();
-
-        // Initialize adapter and set it to RecyclerView
-        adapter = new ListLostItemsAdapter(lostItemList, getContext());
-        recyclerView.setAdapter(adapter);
-
-        // Check if the user is authenticated
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() != null) {
-            fetchLostItemsFromFirestore();
-        } else {
-            Log.w(TAG, "User not authenticated");
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            currentUserId = user.getUid();
         }
 
         return view;
-    }
-
-    private void fetchLostItemsFromFirestore() {
-        CollectionReference lostItemsRef = db.collection("lostItems");
-        lostItemsRef.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(3)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        lostItemList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            ListLostItem lostItem = document.toObject(ListLostItem.class);
-                            lostItemList.add(lostItem);
-                        }
-                        Log.d(TAG, "Loaded items: " + lostItemList.size());
-                        adapter.notifyDataSetChanged();
-                    } else {
-                        Log.e(TAG, "Error getting documents: ", task.getException());
-                    }
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Fetch failed: ", e));
     }
 
     @Override
@@ -115,33 +89,38 @@ public class HomeFragment extends Fragment {
         profileImageView = view.findViewById(R.id.profileImageView);
         TextView dayTextView = view.findViewById(R.id.dayTextView);
         TextView monthTextView = view.findViewById(R.id.monthTextView);
-
         pieChart = view.findViewById(R.id.pieChart);
         tvFound = view.findViewById(R.id.tvFound);
         tvLost = view.findViewById(R.id.tvLost);
-
         messageBadge = view.findViewById(R.id.messageBadge);
+        contentTabLayout = view.findViewById(R.id.contentTabLayout);
+        contentViewPager = view.findViewById(R.id.contentViewPager);
+        analyticsProgressBar = view.findViewById(R.id.analyticsProgressBar);  // Initialize
+
 
         ImageView messageIcon = view.findViewById(R.id.messageIcon);
-        messageIcon.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), MessagesActivity.class);
-            startActivity(intent);
-        });
+        if (messageIcon != null) {
+            messageIcon.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), MessagesActivity.class);
+                startActivity(intent);
+            });
+        }
 
-        // Set user info
         if (user != null) {
             String fullName = user.getDisplayName();
             String firstName = fullName != null ? fullName.split(" ")[0] : "User";
             firstName = !firstName.isEmpty() ? firstName.substring(0,1).toUpperCase() + firstName.substring(1).toLowerCase() : "User";
-            welcomeTextView.setText("Hi, " + firstName + "!");
+            if (welcomeTextView != null) {
+                welcomeTextView.setText("Hi, " + firstName + "!");
+            }
         }
 
-        if (user != null && user.getPhotoUrl() != null) {
+        if (user != null && user.getPhotoUrl() != null && profileImageView != null) {
             Glide.with(this)
                     .load(user.getPhotoUrl())
                     .circleCrop()
                     .into(profileImageView);
-        } else {
+        } else if (profileImageView != null) {
             Glide.with(this)
                     .load(R.drawable.default_avatar)
                     .circleCrop()
@@ -152,74 +131,194 @@ public class HomeFragment extends Fragment {
         SimpleDateFormat monthFormat = new SimpleDateFormat("MMM", Locale.getDefault());
         Date currentDate = new Date();
 
-        dayTextView.setText(dayFormat.format(currentDate));
-        monthTextView.setText(monthFormat.format(currentDate).toUpperCase());
+        if (dayTextView != null) {
+            dayTextView.setText(dayFormat.format(currentDate));
+        }
+        if (monthTextView != null) {
+            monthTextView.setText(monthFormat.format(currentDate).toUpperCase());
+        }
 
-        TextView seeAllBtn = view.findViewById(R.id.seeAllBtn);
-        seeAllBtn.setOnClickListener(v -> {
-            HomeActivity activity = (HomeActivity) requireActivity();
-            BottomNavigationView bottomNav = activity.findViewById(R.id.bottomNavigationView);
-            bottomNav.setSelectedItemId(R.id.nav_search);
-        });
-
-        // Fetch analytics data for pie chart
+        setupViewPager();
         fetchAnalyticsData();
 
-        listenForUnreadMessages();
+        if (currentUserId != null) {
+            listenForUnreadMessages();
+        }
+    }
+
+    private void setupViewPager() {
+        if (contentViewPager == null || contentTabLayout == null) {
+            Log.e(TAG, "ViewPager or TabLayout is null!");
+            return;
+        }
+
+        ContentPagerAdapter adapter = new ContentPagerAdapter(requireActivity());
+        contentViewPager.setAdapter(adapter);
+
+        new TabLayoutMediator(contentTabLayout, contentViewPager,
+                (tab, position) -> {
+                    if (position == 0) {
+                        tab.setText("For You");
+                    } else {
+                        tab.setText("Recent Reports");
+                    }
+                }
+        ).attach();
     }
 
     private void fetchAnalyticsData() {
+        if (db == null) {
+            Log.e(TAG, "Firestore is null!");
+            return;
+        }
+
+        // Show loading state
+        showLoadingState();
+
+        Log.d(TAG, "Fetching analytics data...");
+
         db.collection("lostItems")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     int lostCount = 0;
                     int foundCount = 0;
 
+                    Log.d(TAG, "Total documents in 'lostItems': " + querySnapshot.size());
+
                     for (QueryDocumentSnapshot doc : querySnapshot) {
-                        String type = doc.getString("reportType");
-                        if ("Lost".equalsIgnoreCase(type)) lostCount++;
-                        else if ("Found".equalsIgnoreCase(type)) foundCount++;
+                        Boolean isDeleted = doc.getBoolean("isDeleted");
+                        if (isDeleted != null && isDeleted) {
+                            continue;
+                        }
+
+                        String reportType = doc.getString("reportType");
+
+                        Log.d(TAG, "Document ID: " + doc.getId());
+                        Log.d(TAG, "  reportType: " + reportType);
+
+                        if (reportType != null) {
+                            if ("LOST".equalsIgnoreCase(reportType) || "Lost".equalsIgnoreCase(reportType)) {
+                                lostCount++;
+                            } else if ("FOUND".equalsIgnoreCase(reportType) || "Found".equalsIgnoreCase(reportType)) {
+                                foundCount++;
+                            }
+                        }
                     }
 
-                    int total = lostCount + foundCount;
-                    float lostPercent = total > 0 ? (lostCount * 100f / total) : 0;
-                    float foundPercent = total > 0 ? (foundCount * 100f / total) : 0;
-
-                    tvLost.setText("Lost: " + lostCount);
-                    tvFound.setText("Found: " + foundCount);
-
-                    ArrayList<PieEntry> entries = new ArrayList<>();
-                    if (foundCount > 0) entries.add(new PieEntry(foundPercent));
-                    if (lostCount > 0) entries.add(new PieEntry(lostPercent));
-
-                    PieDataSet dataSet = new PieDataSet(entries, "");
-                    dataSet.setColors(new int[]{
-                            Color.parseColor("#4dbdf7"), // Blue (Found)
-                            Color.parseColor("#3a68dc")  // Light Blue (Lost)
-                    });
-                    dataSet.setValueTextColor(Color.WHITE);
-                    dataSet.setValueTextSize(14f);
-
-                    PieData data = new PieData(dataSet);
-                    pieChart.setData(data);
-
-                    pieChart.getDescription().setEnabled(false);
-                    pieChart.getLegend().setEnabled(false);
-                    pieChart.setDrawHoleEnabled(false);
-                    pieChart.setDrawEntryLabels(true);
-                    pieChart.setEntryLabelColor(Color.WHITE);
-                    pieChart.setEntryLabelTextSize(14f);
-                    pieChart.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutQuad);
-                    pieChart.setRotationEnabled(false);
-                    pieChart.setTouchEnabled(false);
-                    pieChart.invalidate();
+                    Log.d(TAG, "Found: " + foundCount + ", Lost: " + lostCount);
+                    updateUIWithCounts(foundCount, lostCount);
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching analytics", e));
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching from 'lostItems'", e);
+                    updateUIWithCounts(0, 0);
+                });
     }
 
-    // Listen for unread messages in real-time
+    private void showLoadingState() {
+        if (analyticsProgressBar != null) {
+            analyticsProgressBar.setVisibility(View.VISIBLE);
+        }
+        if (pieChart != null) {
+            pieChart.setVisibility(View.INVISIBLE);
+        }
+        if (tvLost != null) {
+            tvLost.setAlpha(0.3f);
+        }
+        if (tvFound != null) {
+            tvFound.setAlpha(0.3f);
+        }
+    }
+
+    private void hideLoadingState() {
+        if (analyticsProgressBar != null) {
+            analyticsProgressBar.setVisibility(View.GONE);
+        }
+        if (pieChart != null) {
+            pieChart.setVisibility(View.VISIBLE);
+        }
+        if (tvLost != null) {
+            tvLost.animate().alpha(1f).setDuration(300).start();
+        }
+        if (tvFound != null) {
+            tvFound.animate().alpha(1f).setDuration(300).start();
+        }
+    }
+
+    private void updateUIWithCounts(int foundCount, int lostCount) {
+        if (tvLost != null) {
+            tvLost.setText("Lost: " + lostCount);
+        }
+        if (tvFound != null) {
+            tvFound.setText("Found: " + foundCount);
+        }
+
+        if (pieChart != null) {
+            setupPieChart(foundCount, lostCount);
+        } else {
+            Log.e(TAG, "PieChart is null!");
+        }
+
+        // Hide loading state after data is loaded
+        hideLoadingState();
+    }
+
+    private void setupPieChart(int foundCount, int lostCount) {
+        Log.d(TAG, "Setting up pie chart with Found: " + foundCount + ", Lost: " + lostCount);
+
+        ArrayList<PieEntry> entries = new ArrayList<>();
+
+        if (foundCount > 0) {
+            entries.add(new PieEntry(foundCount, "Found"));
+        }
+        if (lostCount > 0) {
+            entries.add(new PieEntry(lostCount, "Lost"));
+        }
+
+        if (entries.isEmpty()) {
+            entries.add(new PieEntry(1, "No Data"));
+        }
+
+        PieDataSet dataSet = new PieDataSet(entries, "");
+
+        ArrayList<Integer> colors = new ArrayList<>();
+        if (foundCount > 0) {
+            colors.add(Color.parseColor("#3a68dc"));
+        }
+        if (lostCount > 0) {
+            colors.add(Color.parseColor("#4dbdf7"));
+        }
+        if (entries.isEmpty() || (foundCount == 0 && lostCount == 0)) {
+            colors.add(Color.parseColor("#CCCCCC"));
+        }
+
+        dataSet.setColors(colors);
+        dataSet.setDrawValues(false);
+        dataSet.setValueTextSize(0f);
+
+        PieData data = new PieData(dataSet);
+        pieChart.setData(data);
+
+        pieChart.getDescription().setEnabled(false);
+        pieChart.getLegend().setEnabled(false);
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleRadius(50f);
+        pieChart.setTransparentCircleRadius(55f);
+        pieChart.setTransparentCircleAlpha(0);
+        pieChart.setRotationEnabled(false);
+        pieChart.setTouchEnabled(false);
+        pieChart.setDrawEntryLabels(false);
+
+        // Add smooth animations
+        pieChart.animateY(1200, Easing.EaseInOutQuad);
+        pieChart.animateX(1200, Easing.EaseInOutQuad);
+
+        pieChart.invalidate();
+
+        Log.d(TAG, "Pie chart setup complete with animation");
+    }
+
     private void listenForUnreadMessages() {
-        if (currentUserId == null) return;
+        if (currentUserId == null || db == null) return;
 
         messageListener = db.collection("chatList")
                 .whereArrayContains("participants", currentUserId)
@@ -236,17 +335,14 @@ public class HomeFragment extends Fragment {
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Map<String, Object> data = doc.getData();
 
-                        // Check if archived
                         Boolean isArchived = (Boolean) data.get("archivedFor_" + currentUserId);
                         if (isArchived != null && isArchived) {
                             continue;
                         }
 
-                        // Check if unread
                         Boolean unreadValue = (Boolean) data.get("unread");
                         String lastSenderId = (String) data.get("lastSenderId");
 
-                        // Only count as unread if someone else sent the last message
                         boolean isUnread = (unreadValue != null && unreadValue) &&
                                 (lastSenderId != null && !currentUserId.equals(lastSenderId));
 
@@ -258,7 +354,7 @@ public class HomeFragment extends Fragment {
                     updateMessageBadge(unreadCount);
                 });
     }
-    // Update the badge visibility and count
+
     private void updateMessageBadge(int count) {
         if (messageBadge == null) return;
 
@@ -273,10 +369,10 @@ public class HomeFragment extends Fragment {
             messageBadge.setVisibility(View.GONE);
         }
     }
+
     @Override
     public void onResume() {
         super.onResume();
-        // Restart listener when fragment resumes
         if (messageListener == null && currentUserId != null) {
             listenForUnreadMessages();
         }
@@ -285,10 +381,213 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Clean up listener to prevent memory leaks
         if (messageListener != null) {
             messageListener.remove();
             messageListener = null;
+        }
+    }
+
+    public static class ContentPagerAdapter extends FragmentStateAdapter {
+
+        public ContentPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
+            super(fragmentActivity);
+        }
+
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            if (position == 0) {
+                return new MatchesFragment();
+            } else {
+                return new RecentReportsFragment();
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return 2;
+        }
+    }
+
+    public static class MatchesFragment extends Fragment {
+
+        private RecyclerView recyclerView;
+        private MatchesAdapter adapter;
+        private ProgressBar progressBar;
+        private TextView emptyView;
+        private MatchingService matchingService;
+        private FirebaseAuth mAuth;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.fragment_matches, container, false);
+
+            recyclerView = view.findViewById(R.id.recyclerViewMatches);
+            progressBar = view.findViewById(R.id.progressBar);
+            emptyView = view.findViewById(R.id.emptyView);
+
+            mAuth = FirebaseAuth.getInstance();
+            matchingService = new MatchingService();
+
+            setupRecyclerView();
+            loadMatches();
+
+            return view;
+        }
+
+        private void setupRecyclerView() {
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            adapter = new MatchesAdapter(new ArrayList<>());
+            recyclerView.setAdapter(adapter);
+        }
+
+        private void loadMatches() {
+            progressBar.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.GONE);
+
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user == null) {
+                progressBar.setVisibility(View.GONE);
+                emptyView.setVisibility(View.VISIBLE);
+                emptyView.setText("Please sign in to see matches");
+                return;
+            }
+
+            String userId = user.getUid();
+
+            matchingService.findMatchesForUser(userId,
+                    new MatchingService.OnMatchesFoundListener() {
+                        @Override
+                        public void onMatchesFound(List<ItemMatch> matches) {
+                            progressBar.setVisibility(View.GONE);
+
+                            if (matches.isEmpty()) {
+                                emptyView.setVisibility(View.VISIBLE);
+                                emptyView.setText("No matches yet\n\nWe'll notify you when we find potential matches for your lost items using our Cosine Similarity algorithm.");
+                            } else {
+                                recyclerView.setVisibility(View.VISIBLE);
+                                adapter.updateMatches(matches);
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            progressBar.setVisibility(View.GONE);
+                            emptyView.setVisibility(View.VISIBLE);
+                            emptyView.setText("Post a lost item to see matches here!");
+                        }
+                    });
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            loadMatches();
+        }
+    }
+
+    public static class RecentReportsFragment extends Fragment {
+
+        private RecyclerView recyclerView;
+        private RecentItemsAdapter adapter;
+        private ProgressBar progressBar;
+        private TextView emptyView;
+        private FirebaseFirestore db;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.fragment_recent_reports, container, false);
+
+            recyclerView = view.findViewById(R.id.recyclerViewRecentReports);
+            progressBar = view.findViewById(R.id.progressBar);
+            emptyView = view.findViewById(R.id.emptyView);
+
+            db = FirebaseFirestore.getInstance();
+
+            setupRecyclerView();
+            loadRecentReports();
+
+            return view;
+        }
+
+        private void setupRecyclerView() {
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            adapter = new RecentItemsAdapter(new ArrayList<>(), getContext());
+            recyclerView.setAdapter(adapter);
+        }
+
+        private void loadRecentReports() {
+            progressBar.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.GONE);
+
+            Log.d("RecentReportsFragment", "Loading recent reports...");
+
+            db.collection("lostItems")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .limit(10)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        Log.d("RecentReportsFragment", "Items fetched: " + querySnapshot.size());
+
+                        List<Item> items = new ArrayList<>();
+                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                            Log.d("RecentReportsFragment", "Document ID: " + doc.getId());
+                            Log.d("RecentReportsFragment", "Document data: " + doc.getData());
+
+                            try {
+                                Boolean isDeleted = doc.getBoolean("isDeleted");
+                                if (isDeleted != null && isDeleted) {
+                                    continue;
+                                }
+
+                                LostItem lostItem = doc.toObject(LostItem.class);
+                                if (lostItem != null) {
+                                    Item item = convertLostItemToItem(lostItem);
+                                    item.setId(doc.getId());
+                                    items.add(item);
+                                    Log.d("RecentReportsFragment", "Item added successfully: " + doc.getId());
+                                }
+                            } catch (Exception e) {
+                                Log.e("RecentReportsFragment", "Failed to convert document: " + doc.getId(), e);
+                            }
+                        }
+
+                        progressBar.setVisibility(View.GONE);
+
+                        if (items.isEmpty()) {
+                            emptyView.setVisibility(View.VISIBLE);
+                            emptyView.setText("No reports yet");
+                        } else {
+                            recyclerView.setVisibility(View.VISIBLE);
+                            adapter.updateItems(items);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("RecentReportsFragment", "Error loading from 'lostItems'", e);
+                        progressBar.setVisibility(View.GONE);
+                        emptyView.setVisibility(View.VISIBLE);
+                        Toast.makeText(getContext(), "Error loading reports: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    });
+        }
+
+        private Item convertLostItemToItem(LostItem lostItem) {
+            Item item = new Item();
+            item.setUserId(lostItem.getUserId());
+            item.setType(lostItem.getReportType());
+            item.setTitle(lostItem.getItemLost());
+            item.setDescription(lostItem.getAdditionalInfo());
+            item.setCategory(lostItem.getCategory());
+            item.setLocation(lostItem.getLastSeen());
+            item.setTimestamp(lostItem.getTimestamp());
+            item.setImageUrl(lostItem.getItemImageUrl());
+            return item;
         }
     }
 }

@@ -167,7 +167,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="0dp"
-                    android:gravity="center_vertical"> <!-- Align the dropdown vertically -->
+                    android:gravity="center_vertical">
 
                     <AutoCompleteTextView
                         android:id="@+id/category"
@@ -384,6 +384,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- CHANGED: Last Seen to Dropdown -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -395,20 +396,39 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="15dp"
+                    android:gravity="center_vertical"
                     android:text="Last Seen"
                     android:textColor="@color/gray"
                     android:textSize="18dp" />
 
-                <EditText
-                    android:id="@+id/lastSeenText"
-                    android:layout_width="250dp"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/edittext_background"
-                    android:inputType="text"
-                    android:textColor="@color/black"
-                    android:textSize="20dp" />
+                    android:gravity="center_vertical">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/locationDropdown"
+                        android:layout_width="250dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/border"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="0dp"
+                        android:paddingTop="4dp"
+                        android:paddingRight="0dp"
+                        android:paddingBottom="4dp"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
+
+            <!-- Keep lastSeenText hidden as backup (you can remove this if you want) -->
+            <EditText
+                android:id="@+id/lastSeenText"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:layout_width="match_parent"

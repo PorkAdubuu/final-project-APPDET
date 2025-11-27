@@ -1,6 +1,7 @@
 package com.example.trackback;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private static final int VIEW_TYPE_SENT = 1;
     private static final int VIEW_TYPE_RECEIVED = 2;
+    private static final int VIEW_TYPE_SYSTEM = 3;
 
     private Context context;
     private List<Message> messages;
@@ -36,9 +38,25 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public int getItemViewType(int position) {
         Message message = messages.get(position);
-        if (message.getSenderId().equals(currentUserId)) {
+
+        // Log for debugging
+        Log.d("MessageAdapter", "Checking message at position " + position);
+        Log.d("MessageAdapter", "  - messageText: " + message.getMessageText());
+        Log.d("MessageAdapter", "  - isSystemMessage(): " + message.isSystemMessage());
+        Log.d("MessageAdapter", "  - senderId: " + message.getSenderId());
+
+        // Check if it's a system message
+        if (message.isSystemMessage()) {
+            Log.d("MessageAdapter", "  → This is a SYSTEM message!");
+            return VIEW_TYPE_SYSTEM;
+        }
+
+        // Check if sent or received
+        if (message.getSenderId() != null && message.getSenderId().equals(currentUserId)) {
+            Log.d("MessageAdapter", "  → This is a SENT message");
             return VIEW_TYPE_SENT;
         } else {
+            Log.d("MessageAdapter", "  → This is a RECEIVED message");
             return VIEW_TYPE_RECEIVED;
         }
     }
@@ -47,10 +65,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
-        if (viewType == VIEW_TYPE_SENT) {
+
+        Log.d("MessageAdapter", "onCreateViewHolder called with viewType: " + viewType);
+
+        if (viewType == VIEW_TYPE_SYSTEM) {
+            Log.d("MessageAdapter", "Creating SYSTEM view holder");
+            view = LayoutInflater.from(context).inflate(R.layout.item_message_system, parent, false);
+            return new SystemViewHolder(view);
+        } else if (viewType == VIEW_TYPE_SENT) {
+            Log.d("MessageAdapter", "Creating SENT view holder");
             view = LayoutInflater.from(context).inflate(R.layout.item_message_sent, parent, false);
             return new SentViewHolder(view);
         } else {
+            Log.d("MessageAdapter", "Creating RECEIVED view holder");
             view = LayoutInflater.from(context).inflate(R.layout.item_message_received, parent, false);
             return new ReceivedViewHolder(view);
         }
@@ -59,9 +86,15 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Message message = messages.get(position);
-        if (holder instanceof SentViewHolder) {
+
+        if (holder instanceof SystemViewHolder) {
+            Log.d("MessageAdapter", "Binding SYSTEM message");
+            ((SystemViewHolder) holder).bind(message);
+        } else if (holder instanceof SentViewHolder) {
+            Log.d("MessageAdapter", "Binding SENT message");
             ((SentViewHolder) holder).bind(message, context);
-        } else {
+        } else if (holder instanceof ReceivedViewHolder) {
+            Log.d("MessageAdapter", "Binding RECEIVED message");
             ((ReceivedViewHolder) holder).bind(message, context);
         }
     }
@@ -71,10 +104,44 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return messages.size();
     }
 
+    // ---------------- SYSTEM MESSAGE HOLDER ----------------
+    static class SystemViewHolder extends RecyclerView.ViewHolder {
+        TextView textSystemMessage, textSystemTime;
+
+        SystemViewHolder(View itemView) {
+            super(itemView);
+            textSystemMessage = itemView.findViewById(R.id.textSystemMessage);
+            textSystemTime = itemView.findViewById(R.id.textSystemTime);
+
+            if (textSystemMessage == null) {
+                Log.e("SystemViewHolder", "ERROR: textSystemMessage is NULL! Check item_message_system.xml");
+            }
+            if (textSystemTime == null) {
+                Log.e("SystemViewHolder", "ERROR: textSystemTime is NULL! Check item_message_system.xml");
+            }
+        }
+
+        void bind(Message message) {
+            if (textSystemMessage != null) {
+                textSystemMessage.setText(message.getMessageText());
+            }
+
+            if (textSystemTime != null) {
+                Timestamp timestamp = message.getTimestamp();
+                if (timestamp != null) {
+                    Date date = timestamp.toDate();
+                    SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                    textSystemTime.setText(sdf.format(date));
+                } else {
+                    textSystemTime.setText("");
+                }
+            }
+        }
+    }
+
     // ---------------- SENT MESSAGE HOLDER ----------------
     static class SentViewHolder extends RecyclerView.ViewHolder {
-
-        TextView textMessage, textTime, readStatus;
+        TextView textMessage, textTime;
         ImageView imageMessage;
 
         SentViewHolder(View itemView) {
@@ -85,25 +152,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         void bind(Message message, Context context) {
-            // Check if message has an image
             if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()) {
-                // Show image, hide text
                 imageMessage.setVisibility(View.VISIBLE);
                 textMessage.setVisibility(View.GONE);
-
-                // Load image with Glide
                 Glide.with(context)
                         .load(message.getImageUrl())
                         .placeholder(R.drawable.circle_outline)
                         .into(imageMessage);
             } else {
-                // Show text, hide image
                 imageMessage.setVisibility(View.GONE);
                 textMessage.setVisibility(View.VISIBLE);
                 textMessage.setText(message.getMessageText());
             }
 
-            // Show timestamp
             Timestamp timestamp = message.getTimestamp();
             if (timestamp != null) {
                 Date date = timestamp.toDate();
@@ -112,19 +173,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             } else {
                 textTime.setText("");
             }
-
-            // Show read status
-            // Remove read status entirely
-            if (readStatus != null) {
-                readStatus.setVisibility(View.GONE);
-            }
-
         }
     }
 
     // ---------------- RECEIVED MESSAGE HOLDER ----------------
     static class ReceivedViewHolder extends RecyclerView.ViewHolder {
-
         TextView textMessage, textTime;
         ImageView imageMessage;
 
@@ -136,25 +189,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         void bind(Message message, Context context) {
-            // Check if message has an image
             if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()) {
-                // Show image, hide text
                 imageMessage.setVisibility(View.VISIBLE);
                 textMessage.setVisibility(View.GONE);
-
-                // Load image with Glide
                 Glide.with(context)
                         .load(message.getImageUrl())
                         .placeholder(R.drawable.circle_outline)
                         .into(imageMessage);
             } else {
-                // Show text, hide image
                 imageMessage.setVisibility(View.GONE);
                 textMessage.setVisibility(View.VISIBLE);
                 textMessage.setText(message.getMessageText());
             }
 
-            // Show timestamp
             Timestamp timestamp = message.getTimestamp();
             if (timestamp != null) {
                 Date date = timestamp.toDate();

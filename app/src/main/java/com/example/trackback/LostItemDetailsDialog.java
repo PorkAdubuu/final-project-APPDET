@@ -3,6 +3,7 @@ package com.example.trackback;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -16,11 +17,18 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LostItemDetailsDialog extends DialogFragment {
 
+    private static final String TAG = "LostItemDialog";
     private ListLostItem lostItem;
 
     public LostItemDetailsDialog() {
@@ -133,46 +141,220 @@ public class LostItemDetailsDialog extends DialogFragment {
         Button messageButton = view.findViewById(R.id.messageBtn);
 
         if (messageButton != null) {
-            messageButton.setOnClickListener(v -> {
-                FirebaseAuth mAuth = FirebaseAuth.getInstance();
-                if (mAuth.getCurrentUser() == null) {
-                    Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
-                String currentUserId = mAuth.getCurrentUser().getUid();
-                String receiverId = lostItem.getUserId(); // Could be null
-                String receiverName = ((lostItem.getFirstName() != null ? lostItem.getFirstName() : "") + " " + (lostItem.getLastName() != null ? lostItem.getLastName() : "")).trim();
-                String receiverProfileUrl = lostItem.getProfileUrl() != null ? lostItem.getProfileUrl() : "";
+            // Check if logged in
+            if (mAuth.getCurrentUser() == null) {
+                messageButton.setVisibility(View.GONE);
+                return;
+            }
 
-                // Validate receiverId
-                if (receiverId == null || receiverId.isEmpty()) {
-                    Toast.makeText(requireContext(), "Chat not available: User ID missing.", Toast.LENGTH_LONG).show();
-                    return;
-                }
+            String currentUserId = mAuth.getCurrentUser().getUid();
+            String receiverId = lostItem.getUserId();
 
-                // Prevent messaging yourself
-                if (currentUserId.equals(receiverId)) {
-                    Toast.makeText(requireContext(), "You cannot message yourself.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            // Hide message button if the current user is the owner of the post
+            if (receiverId == null || receiverId.isEmpty() || currentUserId.equals(receiverId)) {
+                messageButton.setVisibility(View.GONE);
+            } else {
+                messageButton.setVisibility(View.VISIBLE);
 
-                // Default name fallback
-                if (receiverName.isEmpty()) receiverName = "User";
+                messageButton.setOnClickListener(v -> {
+                    String receiverName = ((lostItem.getFirstName() != null ? lostItem.getFirstName() : "") + " " + (lostItem.getLastName() != null ? lostItem.getLastName() : "")).trim();
+                    String receiverProfileUrl = lostItem.getProfileUrl() != null ? lostItem.getProfileUrl() : "";
 
-                // Open ChatActivity safely
-                try {
-                    Intent intent = new Intent(requireContext(), ChatActivity.class);
-                    intent.putExtra("receiverId", receiverId);
-                    intent.putExtra("receiverName", receiverName);
-                    intent.putExtra("profileImageUrl", receiverProfileUrl);
-                    startActivity(intent);
-                    dismiss();
-                } catch (Exception e) {
-                    android.util.Log.e("LostItemDialog", "Failed to open chat", e);
-                    Toast.makeText(requireContext(), "Error opening chat.", Toast.LENGTH_SHORT).show();
-                }
+                    if (receiverName.isEmpty()) receiverName = "User";
+
+                    try {
+                        Intent intent = new Intent(requireContext(), ChatActivity.class);
+                        intent.putExtra("receiverId", receiverId);
+                        intent.putExtra("receiverName", receiverName);
+                        intent.putExtra("profileImageUrl", receiverProfileUrl);
+                        startActivity(intent);
+                        dismiss();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to open chat", e);
+                        Toast.makeText(requireContext(), "Error opening chat.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }
+
+        // --- TEST BUTTON: Send Item Found Message ---
+        // You can add a temporary test button or use an existing button
+        // For testing, let's add it to any button click - replace with your actual button ID
+
+        Button testButton = view.findViewById(R.id.messageBtn); // TEMPORARILY using message button for testing
+        if (testButton != null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+            testButton.setOnLongClickListener(v -> {
+                Log.d(TAG, "Test button long-clicked - sending Item Found notifications");
+                Toast.makeText(requireContext(), "Sending Item Found notifications...", Toast.LENGTH_SHORT).show();
+                sendItemFoundNotifications();
+                return true;
             });
         }
+    }
+
+    private void sendItemFoundNotifications() {
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) {
+            Log.e(TAG, "Current user ID is null");
+            return;
+        }
+
+        Log.d(TAG, "Starting to send Item Found notifications for user: " + currentUserId);
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        // Find all chat conversations involving current user
+        firestore.collection("chatList")
+                .whereArrayContains("participants", currentUserId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    Log.d(TAG, "Found " + querySnapshot.size() + " chat conversations");
+
+                    if (querySnapshot.isEmpty()) {
+                        Toast.makeText(requireContext(), "No conversations found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    int[] sentCount = {0};
+                    querySnapshot.forEach(document -> {
+                        Map<String, Object> data = document.getData();
+                        if (data == null) {
+                            Log.w(TAG, "Document data is null");
+                            return;
+                        }
+
+                        String user1Id = (String) data.get("user1Id");
+                        String user2Id = (String) data.get("user2Id");
+
+                        Log.d(TAG, "Processing chat: user1=" + user1Id + ", user2=" + user2Id);
+
+                        // Determine the other user
+                        String otherUserId = currentUserId.equals(user1Id) ? user2Id : user1Id;
+                        String otherUserName = currentUserId.equals(user1Id)
+                                ? (String) data.get("user2Name")
+                                : (String) data.get("user1Name");
+                        String otherUserProfile = currentUserId.equals(user1Id)
+                                ? (String) data.get("user2ProfileUrl")
+                                : (String) data.get("user1ProfileUrl");
+
+                        Log.d(TAG, "Sending to: " + otherUserId + " (" + otherUserName + ")");
+
+                        // Send "Item Found" message
+                        sendItemFoundMessage(otherUserId, otherUserName, otherUserProfile);
+                        sentCount[0]++;
+                    });
+
+                    Toast.makeText(requireContext(),
+                            "Sending Item Found to " + sentCount[0] + " user(s)",
+                            Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to query chatList", e);
+                    Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void sendItemFoundMessage(String receiverId, String receiverName, String receiverProfileUrl) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+
+        if (currentUserId == null || receiverId == null) {
+            Log.e(TAG, "Cannot send message: currentUserId or receiverId is null");
+            return;
+        }
+
+        Log.d(TAG, "Creating Item Found message from " + currentUserId + " to " + receiverId);
+
+        // Create the message
+        String messageText = "Item Found";
+        Timestamp now = Timestamp.now();
+
+        Message message = new Message(currentUserId, receiverId, messageText, now);
+
+        // Add to messages collection
+        firestore.collection("messages")
+                .add(message)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Message added successfully: " + documentReference.getId());
+
+                    // Get current user info
+                    firestore.collection("users").document(currentUserId)
+                            .get()
+                            .addOnSuccessListener(snapshot -> {
+                                String currentUserName = "";
+                                String currentUserProfile = "";
+
+                                if (snapshot.exists()) {
+                                    String firstName = snapshot.getString("firstName");
+                                    String lastName = snapshot.getString("lastName");
+                                    currentUserName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                                    currentUserProfile = snapshot.getString("profileImageUrl");
+
+                                    Log.d(TAG, "Current user info: " + currentUserName);
+                                }
+
+                                // Update chatList
+                                updateChatList(currentUserId, receiverId, currentUserName, currentUserProfile,
+                                        receiverName, receiverProfileUrl, messageText, now);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to get current user info", e);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to add message", e);
+                    Toast.makeText(requireContext(), "Failed to send message", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateChatList(String currentUserId, String receiverId,
+                                String currentUserName, String currentUserProfile,
+                                String receiverName, String receiverProfileUrl,
+                                String lastMessage, Timestamp timestamp) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        // Generate chat ID
+        String chatId = currentUserId.compareTo(receiverId) < 0
+                ? currentUserId + "_" + receiverId
+                : receiverId + "_" + currentUserId;
+
+        Log.d(TAG, "Updating chatList with ID: " + chatId);
+
+        // Prepare chatList data
+        Map<String, Object> chatData = new HashMap<>();
+        chatData.put("participants", Arrays.asList(currentUserId, receiverId));
+        chatData.put("lastMessage", lastMessage);
+        chatData.put("timestamp", timestamp);
+        chatData.put("unread", true);
+        chatData.put("lastSenderId", currentUserId);
+
+        // Add user details
+        if (currentUserId.compareTo(receiverId) < 0) {
+            chatData.put("user1Id", currentUserId);
+            chatData.put("user1Name", currentUserName);
+            chatData.put("user1ProfileUrl", currentUserProfile);
+            chatData.put("user2Id", receiverId);
+            chatData.put("user2Name", receiverName);
+            chatData.put("user2ProfileUrl", receiverProfileUrl);
+        } else {
+            chatData.put("user1Id", receiverId);
+            chatData.put("user1Name", receiverName);
+            chatData.put("user1ProfileUrl", receiverProfileUrl);
+            chatData.put("user2Id", currentUserId);
+            chatData.put("user2Name", currentUserName);
+            chatData.put("user2ProfileUrl", currentUserProfile);
+        }
+
+        // Update chatList
+        firestore.collection("chatList")
+                .document(chatId)
+                .set(chatData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "ChatList updated successfully");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to update chatList", e);
+                });
     }
 }
