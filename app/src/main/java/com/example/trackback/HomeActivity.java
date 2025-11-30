@@ -126,7 +126,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Show HomeFragment on first launch
         if (savedInstanceState == null) {
-            // ✅ Check if opened from notification tap BEFORE showing default fragment
+
             if (!handleNotificationIntent(getIntent())) {
                 // Only show home fragment if NOT opened from notification
                 overlay.setVisibility(View.VISIBLE);
@@ -143,20 +143,43 @@ public class HomeActivity extends AppCompatActivity {
         startListeningUnreadNotifications();
     }
 
-    // ✅ NEW METHOD: Handle notification intent
+
+    // ✅ UPDATED METHOD: Handle notification intent for both message & item notifications
     private boolean handleNotificationIntent(Intent intent) {
-        if (intent != null && intent.getBooleanExtra("openNotifications", false)) {
-            // Open notification fragment
+        if (intent == null || intent.getExtras() == null) return false;
+
+        Bundle extras = intent.getExtras();
+        String type = extras.getString("type");
+
+        if ("message".equals(type)) {
+            // Open MessagesActivity
+            Intent chatIntent = new Intent(this, MessagesActivity.class);
+            chatIntent.putExtra("senderId", extras.getString("senderId"));
+            chatIntent.putExtra("senderName", extras.getString("senderName"));
+            chatIntent.putExtra("openChat", true);
+            chatIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(chatIntent);
+            return true;
+        } else if ("item_notification".equals(type) || extras.getBoolean("openNotifications", false)) {
+            // Open NotificationsFragment
+            NotificationsFragment notifFragment = new NotificationsFragment();
+            Bundle args = new Bundle();
+            args.putString("documentId", extras.getString("documentId"));
+            args.putString("reportType", extras.getString("reportType"));
+            notifFragment.setArguments(args);
+
             overlay.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.frame_overlay, new NotificationsFragment())
+                    .replace(R.id.frame_overlay, notifFragment)
                     .commit();
+
             if (bottomNavigationView != null) {
                 bottomNavigationView.setSelectedItemId(R.id.nav_notif);
             }
-            return true; // Return true to indicate we handled the intent
+            return true;
         }
-        return false; // Return false if no notification intent
+
+        return false; // No notification intent
     }
 
     // ✅ NEW METHOD: Handle notification tap when app is already open

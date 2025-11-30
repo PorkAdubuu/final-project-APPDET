@@ -209,15 +209,8 @@ public class FragmentProfile extends Fragment {
         View bottomSheetView = LayoutInflater.from(getContext()).inflate(R.layout.account_menu, null);
         bottomSheetDialog.setContentView(bottomSheetView);
 
-        LinearLayout menuArchive = bottomSheetView.findViewById(R.id.archivedChatsOption);
         LinearLayout menuBlocked = bottomSheetView.findViewById(R.id.blockedAccountsOption);
         LinearLayout menuLogout = bottomSheetView.findViewById(R.id.LogoutOption);
-
-        menuArchive.setOnClickListener(v -> {
-            bottomSheetDialog.dismiss();
-            Intent intent = new Intent(getContext(), ArchiveActivity.class);
-            startActivity(intent);
-        });
 
         menuBlocked.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();

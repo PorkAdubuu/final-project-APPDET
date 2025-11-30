@@ -57,7 +57,7 @@ public class LostItemDetailActivity extends AppCompatActivity {
         additionalInfoText = findViewById(R.id.additionalInfoText);
         lastSeenText = findViewById(R.id.lastSeenText);
         moreInfoText = findViewById(R.id.moreInfoText);
-        phoneNumberText = findViewById(R.id.phoneNumberText);
+        phoneNumberText = findViewById(R.id.phoneNumber);
         firstNameText = findViewById(R.id.firstNameText);
         lastNameText = findViewById(R.id.lastNameText);
         itemImageView = findViewById(R.id.itemImageView);
@@ -87,7 +87,7 @@ public class LostItemDetailActivity extends AppCompatActivity {
         moreInfoText.setText(getIntent().getStringExtra("moreInfo"));
         firstNameText.setText(getIntent().getStringExtra("firstName"));
         lastNameText.setText(getIntent().getStringExtra("lastName"));
-        phoneNumberText.setText(getIntent().getStringExtra("phoneNumber"));
+        phoneNumberText.setText(getIntent().getStringExtra("phone"));
 
         // Load image
         imageUrl = getIntent().getStringExtra("itemImageUrl");

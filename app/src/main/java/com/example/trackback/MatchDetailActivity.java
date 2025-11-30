@@ -410,7 +410,7 @@ public class MatchDetailActivity extends AppCompatActivity {
                 .addOnSuccessListener(userDoc -> {
                     String profileUrl = null;
                     if (userDoc.exists()) {
-                        profileUrl = userDoc.getString("profileUrl");
+                        profileUrl = userDoc.getString("profileImageUrl");
                     }
 
                     Intent intent = new Intent(this, ChatActivity.class);

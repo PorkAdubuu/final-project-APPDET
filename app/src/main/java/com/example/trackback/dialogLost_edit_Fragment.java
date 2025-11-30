@@ -1,7 +1,6 @@
 package com.example.trackback;
 
 import android.app.TimePickerDialog;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -11,8 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,60 +35,75 @@ public class dialogLost_edit_Fragment extends DialogFragment {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    private EditText itemLostText, brandText, additionalInfoText, lastSeenText,
-            moreInfoText, firstNameText, lastNameText, phoneNumber, dateText, timeText;
+    // DROPDOWNS
     private AutoCompleteTextView autoComplete;
-    private FrameLayout updateBtn;
+    private AutoCompleteTextView lastSeenDropdown;
+
+    // TEXT FIELDS
+    private EditText itemLostText, brandText, additionalInfoText,
+            moreInfoText, firstNameText, lastNameText, phoneNumber, dateText, timeText;
+
+    // BUTTON
+    private Button updateBtn;
 
     private String documentId;
 
+    // LABELS
     private TextView itemLabel, dateLabel, timeLabel;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_dialog_lost_edit_, container, false);
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
-        itemLabel = view.findViewById(R.id.itemLabel);     // TextView for item label
-        dateLabel = view.findViewById(R.id.dateLabel);     // TextView for date label
-        timeLabel = view.findViewById(R.id.timeLabel);     // TextView for time label
+        // LABELS
+        itemLabel = view.findViewById(R.id.itemLabel);
+        dateLabel = view.findViewById(R.id.dateLabel);
+        timeLabel = view.findViewById(R.id.timeLabel);
 
-
-        // Initialize UI elements
+        // INPUT FIELDS
         itemLostText = view.findViewById(R.id.itemLostText);
         brandText = view.findViewById(R.id.brandText);
         additionalInfoText = view.findViewById(R.id.additionalInfoText);
-        lastSeenText = view.findViewById(R.id.lastSeenText);
         moreInfoText = view.findViewById(R.id.moreInfoText);
         firstNameText = view.findViewById(R.id.firstNameText);
         lastNameText = view.findViewById(R.id.lastNameText);
         phoneNumber = view.findViewById(R.id.phoneNumber);
         dateText = view.findViewById(R.id.dateText);
         timeText = view.findViewById(R.id.timeText);
+
+        // DROPDOWNS
         autoComplete = view.findViewById(R.id.category);
+        lastSeenDropdown = view.findViewById(R.id.lastSeenDropdown);
+
+        // UPDATE BUTTON
         updateBtn = view.findViewById(R.id.updateBtn);
 
-        ImageButton datePickerBtn = view.findViewById(R.id.datePicker);
-        ImageButton timePickerBtn = view.findViewById(R.id.timePicker);
-
-        // Disable manual input for date and time EditTexts
-        dateText.setKeyListener(null);
-        timeText.setKeyListener(null);
-
-        // Setup dropdown categories
+        // CATEGORY DROPDOWN
         String[] categories = {
-                "Electronics", "Documents", "Clothing", "Accessories", "Bags",
-                "Wallets", "Keys", "Jewelry", "Books", "School Supplies",
-                "ID Cards", "Mobile Phones", "Umbrellas", "Eyeglasses", "Others"
+                "Gadgets", "Personal Belongings", "Bags", "Accessories",
+                "Clothing", "School Supplies", "Drinkware", "Others"
         };
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.dropdown_item, categories);
         autoComplete.setAdapter(adapter);
 
-        // Date picker dialog
+        // LAST SEEN DROPDOWN
+        String[] locations = {
+                "Umak Oval", "HPSB", "Admin Building", "Academic Building 1",
+                "Academic Building 2", "Library", "Cafeteria"
+        };
+        ArrayAdapter<String> locationAdapter =
+                new ArrayAdapter<>(requireContext(), R.layout.dropdown_item, locations);
+        lastSeenDropdown.setAdapter(locationAdapter);
+
+        // DATE PICKER
+        ImageButton datePickerBtn = view.findViewById(R.id.datePicker);
+        dateText.setKeyListener(null);
         datePickerBtn.setOnClickListener(v -> {
             MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
                     .setTitleText("Select Date Lost")
@@ -103,35 +117,35 @@ public class dialogLost_edit_Fragment extends DialogFragment {
             });
         });
 
-        // Time picker dialog
+        // TIME PICKER
+        ImageButton timePickerBtn = view.findViewById(R.id.timePicker);
+        timeText.setKeyListener(null);
         timePickerBtn.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
-            TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(),
-                    (view1, hourOfDay, minute) -> {
-                        String formattedTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
-                        timeText.setText(formattedTime);
+            TimePickerDialog dialog = new TimePickerDialog(requireContext(),
+                    (pickerView, hour, minute) -> {
+                        String formatted = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+                        timeText.setText(formatted);
                     },
                     calendar.get(Calendar.HOUR_OF_DAY),
                     calendar.get(Calendar.MINUTE),
                     true);
-            timePickerDialog.show();
+            dialog.show();
         });
 
-        // Get documentId from arguments and fetch data
+        // LOAD DATA
         if (getArguments() != null) {
             documentId = getArguments().getString("documentId");
+
             if (documentId != null && !documentId.isEmpty()) {
                 fetchReportData(documentId);
             } else {
                 Toast.makeText(getContext(), "Invalid document ID", Toast.LENGTH_SHORT).show();
                 dismiss();
             }
-        } else {
-            Toast.makeText(getContext(), "No document ID provided", Toast.LENGTH_SHORT).show();
-            dismiss();
         }
 
-        // Update button click listener
+        // UPDATE BUTTON CLICK
         updateBtn.setOnClickListener(v -> {
             if (documentId != null && !documentId.isEmpty()) {
                 updateReport(documentId);
@@ -157,22 +171,27 @@ public class dialogLost_edit_Fragment extends DialogFragment {
 
     private void fetchReportData(String docId) {
         db.collection("lostItems").document(docId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        itemLostText.setText(documentSnapshot.getString("itemLost"));
-                        brandText.setText(documentSnapshot.getString("brand"));
-                        additionalInfoText.setText(documentSnapshot.getString("additionalInfo"));
-                        lastSeenText.setText(documentSnapshot.getString("lastSeen"));
-                        moreInfoText.setText(documentSnapshot.getString("moreInfo"));
-                        firstNameText.setText(documentSnapshot.getString("firstName"));
-                        lastNameText.setText(documentSnapshot.getString("lastName"));
-                        phoneNumber.setText(documentSnapshot.getString("phone"));
-                        dateText.setText(documentSnapshot.getString("date"));
-                        timeText.setText(documentSnapshot.getString("time"));
-                        autoComplete.setText(documentSnapshot.getString("category"), false);
-                        String reportType = documentSnapshot.getString("reportType");
-                        if (reportType != null) {
-                            if (reportType.equalsIgnoreCase("Found")) {
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+
+                        itemLostText.setText(document.getString("itemLost"));
+                        brandText.setText(document.getString("brand"));
+                        additionalInfoText.setText(document.getString("additionalInfo"));
+
+                        // SET LAST SEEN DROPDOWN
+                        lastSeenDropdown.setText(document.getString("lastSeen"), false);
+
+                        moreInfoText.setText(document.getString("moreInfo"));
+                        firstNameText.setText(document.getString("firstName"));
+                        lastNameText.setText(document.getString("lastName"));
+                        phoneNumber.setText(document.getString("phone"));
+                        dateText.setText(document.getString("date"));
+                        timeText.setText(document.getString("time"));
+                        autoComplete.setText(document.getString("category"), false);
+
+                        String type = document.getString("reportType");
+                        if (type != null) {
+                            if (type.equalsIgnoreCase("Found")) {
                                 itemLabel.setText("Item Found");
                                 dateLabel.setText("Date Found");
                                 timeLabel.setText("Time Found");
@@ -182,7 +201,6 @@ public class dialogLost_edit_Fragment extends DialogFragment {
                                 timeLabel.setText("Time Lost");
                             }
                         }
-                        Log.d("ReportTypeCheck", "Report Type received: " + reportType);
 
                     } else {
                         Toast.makeText(getContext(), "Report not found.", Toast.LENGTH_SHORT).show();
@@ -200,7 +218,7 @@ public class dialogLost_edit_Fragment extends DialogFragment {
                 "itemLost", itemLostText.getText().toString(),
                 "brand", brandText.getText().toString(),
                 "additionalInfo", additionalInfoText.getText().toString(),
-                "lastSeen", lastSeenText.getText().toString(),
+                "lastSeen", lastSeenDropdown.getText().toString(),   // FIXED
                 "moreInfo", moreInfoText.getText().toString(),
                 "firstName", firstNameText.getText().toString(),
                 "lastName", lastNameText.getText().toString(),
@@ -210,11 +228,8 @@ public class dialogLost_edit_Fragment extends DialogFragment {
                 "category", autoComplete.getText().toString()
         ).addOnSuccessListener(unused -> {
             Toast.makeText(getContext(), "Report updated successfully.", Toast.LENGTH_SHORT).show();
-
-            // Close dialog
             dismiss();
 
-            // Close LostItemDetailActivity to go back to FragmentProfile
             if (getActivity() != null) {
                 getActivity().finish();
             }
@@ -222,6 +237,4 @@ public class dialogLost_edit_Fragment extends DialogFragment {
                 Toast.makeText(getContext(), "Failed to update report.", Toast.LENGTH_SHORT).show()
         );
     }
-
-
 }
