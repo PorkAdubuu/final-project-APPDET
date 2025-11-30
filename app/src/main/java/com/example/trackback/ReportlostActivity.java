@@ -246,6 +246,7 @@ public class ReportlostActivity extends AppCompatActivity {
 
                             db.collection("lostItems").document(docId).set(lostItem)
                                     .addOnSuccessListener(aVoid -> {
+
                                         // Create notification for Lost item
                                         NotificationModel notification = new NotificationModel(
                                                 docId,           // documentId - the lost item document ID
@@ -258,6 +259,7 @@ public class ReportlostActivity extends AppCompatActivity {
                                                 false,          // read status
                                                 "active"
                                         );
+                                        notification.setPosterId(userId);  // ADD THIS LINE
 
                                         // Send notification to all users except current user
                                         db.collection("users").get().addOnSuccessListener(querySnapshot -> {

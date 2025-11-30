@@ -167,16 +167,6 @@ public class MainActivity extends AppCompatActivity {
                                         .update("fcmToken", token)
                                         .addOnSuccessListener(v -> {
                                             Log.d("MainActivity", "FCM token saved");
-
-                                            // Subscribe to topic for global notifications
-                                            FirebaseMessaging.getInstance().subscribeToTopic("allUsers")
-                                                    .addOnCompleteListener(subTask -> {
-                                                        if (subTask.isSuccessful()) {
-                                                            Log.d("FCM", "Subscribed to allUsers topic!");
-                                                        } else {
-                                                            Log.w("FCM", "Failed to subscribe to allUsers topic", subTask.getException());
-                                                        }
-                                                    });
                                         })
                                         .addOnFailureListener(e -> Log.e("MainActivity", "Error saving FCM token", e));
                             });

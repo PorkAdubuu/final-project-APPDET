@@ -38,10 +38,6 @@ public class CosineSimilarityMatcher {
 
         return similarity;
     }
-
-    /**
-     * Create a feature vector from an item with enhanced weighting
-     */
     private static Map<String, Double> createFeatureVector(Item item) {
         Map<String, Double> vector = new HashMap<>();
 
@@ -169,8 +165,10 @@ public class CosineSimilarityMatcher {
         return similarity;
     }
 
-
-    public static List<ItemMatch> findMatches(Item lostItem, List<Item> foundItems, double threshold) {
+    /**
+     * Find matches for a LOST item against FOUND items
+     */
+    public static List<ItemMatch> findMatchesForLostItem(Item lostItem, List<Item> foundItems, double threshold) {
         List<ItemMatch> matches = new ArrayList<>();
 
         Log.d(TAG, "========================================");
@@ -203,6 +201,52 @@ public class CosineSimilarityMatcher {
         matches.sort((m1, m2) -> Double.compare(m2.getSimilarityScore(), m1.getSimilarityScore()));
 
         return matches;
+    }
+
+    /**
+     * Find matches for a FOUND item against LOST items
+     */
+    public static List<ItemMatch> findMatchesForFoundItem(Item foundItem, List<Item> lostItems, double threshold) {
+        List<ItemMatch> matches = new ArrayList<>();
+
+        Log.d(TAG, "========================================");
+        Log.d(TAG, "Finding matches for FOUND item: " + foundItem.getTitle());
+        Log.d(TAG, "Comparing against " + lostItems.size() + " LOST items");
+        Log.d(TAG, "Threshold: " + threshold);
+        Log.d(TAG, "========================================");
+
+        for (Item lostItem : lostItems) {
+            Log.d(TAG, "\n--- Comparing with LOST item: " + lostItem.getTitle() + " ---");
+
+            double similarity = calculateSimilarity(foundItem, lostItem);
+
+            Log.d(TAG, "Similarity score: " + similarity + " (threshold: " + threshold + ")");
+
+            if (similarity >= threshold) {
+                String reason = generateMatchReason(lostItem, foundItem, similarity);
+                matches.add(new ItemMatch(lostItem, foundItem, similarity, reason));
+                Log.d(TAG, "✓ MATCH FOUND! Score: " + similarity + ", Reason: " + reason);
+            } else {
+                Log.d(TAG, "✗ Below threshold");
+            }
+        }
+
+        Log.d(TAG, "\n========================================");
+        Log.d(TAG, "TOTAL MATCHES FOUND: " + matches.size());
+        Log.d(TAG, "========================================\n");
+
+        // Sort by similarity score (highest first)
+        matches.sort((m1, m2) -> Double.compare(m2.getSimilarityScore(), m1.getSimilarityScore()));
+
+        return matches;
+    }
+
+    /**
+     * Legacy method for backward compatibility - finds matches for lost items
+     */
+    @Deprecated
+    public static List<ItemMatch> findMatches(Item lostItem, List<Item> foundItems, double threshold) {
+        return findMatchesForLostItem(lostItem, foundItems, threshold);
     }
 
 

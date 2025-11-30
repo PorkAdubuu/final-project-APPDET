@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -61,6 +62,17 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
 
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+        // Force adjustResize
+        getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE |
+                        WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
+        );
+
+        setContentView(R.layout.activity_conversation);
+
         recyclerView = findViewById(R.id.recyclerView);
         editMessage = findViewById(R.id.editMessage);
         btnSend = findViewById(R.id.btnSend);
@@ -107,6 +119,17 @@ public class ChatActivity extends AppCompatActivity {
         messageAdapter = new MessageAdapter(this, messages, currentUserId);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(messageAdapter);
+
+        editMessage.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                recyclerView.postDelayed(() -> {
+                    editMessage.requestFocus();
+                    if (messageAdapter.getItemCount() > 0) {
+                        recyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
+                    }
+                }, 300);
+            }
+        });
 
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),

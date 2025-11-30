@@ -19,6 +19,8 @@ public class NotificationModel {
     private String foundItemId;
     private String itemName;
 
+    private String posterId;  // NEW FIELD - ID of the person who posted the item
+
     public NotificationModel() {
     }
 
@@ -162,5 +164,14 @@ public class NotificationModel {
 
     public void setItemName(String itemName) {
         this.itemName = itemName;
+    }
+
+    // NEW GETTER AND SETTER FOR POSTERID
+    public String getPosterId() {
+        return posterId;
+    }
+
+    public void setPosterId(String posterId) {
+        this.posterId = posterId;
     }
 }

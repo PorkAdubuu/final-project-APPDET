@@ -1,6 +1,7 @@
 package com.example.trackback;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -125,17 +126,45 @@ public class HomeActivity extends AppCompatActivity {
 
         // Show HomeFragment on first launch
         if (savedInstanceState == null) {
-            overlay.setVisibility(View.VISIBLE);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.frame_overlay, new HomeFragment())
-                    .commit();
-            if (bottomNavigationView != null) {
-                bottomNavigationView.setSelectedItemId(R.id.nav_home);
+            // ✅ Check if opened from notification tap BEFORE showing default fragment
+            if (!handleNotificationIntent(getIntent())) {
+                // Only show home fragment if NOT opened from notification
+                overlay.setVisibility(View.VISIBLE);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_overlay, new HomeFragment())
+                        .commit();
+                if (bottomNavigationView != null) {
+                    bottomNavigationView.setSelectedItemId(R.id.nav_home);
+                }
             }
         }
 
         // Fetch and update notification badge count on startup
         startListeningUnreadNotifications();
+    }
+
+    // ✅ NEW METHOD: Handle notification intent
+    private boolean handleNotificationIntent(Intent intent) {
+        if (intent != null && intent.getBooleanExtra("openNotifications", false)) {
+            // Open notification fragment
+            overlay.setVisibility(View.VISIBLE);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_overlay, new NotificationsFragment())
+                    .commit();
+            if (bottomNavigationView != null) {
+                bottomNavigationView.setSelectedItemId(R.id.nav_notif);
+            }
+            return true; // Return true to indicate we handled the intent
+        }
+        return false; // Return false if no notification intent
+    }
+
+    // ✅ NEW METHOD: Handle notification tap when app is already open
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleNotificationIntent(intent);
     }
 
     // Request notification permission for Android 13+

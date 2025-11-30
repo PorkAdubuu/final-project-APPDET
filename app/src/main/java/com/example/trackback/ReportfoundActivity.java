@@ -254,6 +254,9 @@ public class ReportfoundActivity extends AppCompatActivity {
                                                 "active"
                                         );
 
+                                        notification.setPosterId(userId);  // ADD THIS LINE
+
+
                                         // Send notification to all users except current user
                                         db.collection("users").get().addOnSuccessListener(querySnapshot -> {
                                                     for (DocumentSnapshot userDoc : querySnapshot.getDocuments()) {

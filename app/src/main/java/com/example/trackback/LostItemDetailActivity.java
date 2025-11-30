@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -33,8 +34,9 @@ public class LostItemDetailActivity extends AppCompatActivity {
             firstNameText, lastNameText, itemLabel, dateLabel, timeLabel, locationLabel;
 
     private ImageView itemImageView, editBtn;
-    private LinearLayout backBtn, markAsFoundBtn;
-    private FrameLayout deleteBtn;
+    private LinearLayout backBtn;
+    private Button markAsFoundBtn;
+    private Button deleteBtn;
     private String documentId;
     private String imageUrl;
     private String currentReportType;
@@ -222,8 +224,6 @@ public class LostItemDetailActivity extends AppCompatActivity {
                 .show();
     }
 
-    // NEW METHOD: Send system message to all related chats
-    // Add this method to your LostItemDetailActivity
 
     private void sendSystemMessageToAllChats() {
         String currentUserId = FirebaseAuth.getInstance().getUid();

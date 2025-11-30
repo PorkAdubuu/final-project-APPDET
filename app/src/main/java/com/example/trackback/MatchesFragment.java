@@ -67,7 +67,7 @@ public class MatchesFragment extends Fragment {
 
                         if (matches.isEmpty()) {
                             emptyView.setVisibility(View.VISIBLE);
-                            emptyView.setText("No matches yet\n\nWe'll notify you when we find potential matches for your lost items using our Cosine Similarity algorithm.");
+                            emptyView.setText("No matches yet\n\nWe'll notify you when we find potential matches for your items.");
                         } else {
                             recyclerView.setVisibility(View.VISIBLE);
                             adapter.updateMatches(matches);
@@ -78,7 +78,7 @@ public class MatchesFragment extends Fragment {
                     public void onError(String error) {
                         progressBar.setVisibility(View.GONE);
                         emptyView.setVisibility(View.VISIBLE);
-                        emptyView.setText("Post a lost item to see matches here!");
+                        emptyView.setText("Post an item to see matches here!");
                     }
                 });
     }
