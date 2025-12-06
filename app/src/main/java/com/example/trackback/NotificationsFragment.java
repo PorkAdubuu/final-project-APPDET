@@ -59,9 +59,10 @@ public class NotificationsFragment extends Fragment {
         db.collection("users")
                 .document(userId)
                 .collection("notifications")
-                .orderBy("date", Query.Direction.DESCENDING)
+                .orderBy("timestamp", Query.Direction.DESCENDING)  // Use timestamp instead
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    notificationList.clear();  // Clear first to avoid duplicates
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         NotificationModel notif = doc.toObject(NotificationModel.class);
                         if (notif != null) {

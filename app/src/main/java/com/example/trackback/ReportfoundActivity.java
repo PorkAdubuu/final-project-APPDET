@@ -241,7 +241,7 @@ public class ReportfoundActivity extends AppCompatActivity {
 
                             db.collection("lostItems").document(docId).set(foundItem)
                                     .addOnSuccessListener(aVoid -> {
-                                        // Create notification for Found item
+                                        // Create notification for Lost/Found item
                                         NotificationModel notification = new NotificationModel(
                                                 docId,
                                                 firstName,
@@ -249,12 +249,12 @@ public class ReportfoundActivity extends AppCompatActivity {
                                                 profileUrl,
                                                 date,
                                                 time,
-                                                "Found",
+                                                "Found",  // or "Found"
                                                 false,
                                                 "active"
                                         );
-
-                                        notification.setPosterId(userId);  // ADD THIS LINE
+                                        notification.setPosterId(userId);
+                                        notification.setTimestamp(System.currentTimeMillis());  // ADD THIS LINE
 
 
                                         // Send notification to all users except current user

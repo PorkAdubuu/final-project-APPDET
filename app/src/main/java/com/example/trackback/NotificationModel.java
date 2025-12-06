@@ -19,7 +19,8 @@ public class NotificationModel {
     private String foundItemId;
     private String itemName;
 
-    private String posterId;  // NEW FIELD - ID of the person who posted the item
+    private String posterId;// NEW FIELD - ID of the person who posted the item
+    private long timestamp;
 
     public NotificationModel() {
     }
@@ -56,6 +57,10 @@ public class NotificationModel {
 
     public String getNotificationDocId() {
         return notificationDocId;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     public void setNotificationDocId(String notificationDocId) {
@@ -132,6 +137,10 @@ public class NotificationModel {
 
     public void setNotificationType(String notificationType) {
         this.notificationType = notificationType;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getMatchId() {

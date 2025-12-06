@@ -247,19 +247,20 @@ public class ReportlostActivity extends AppCompatActivity {
                             db.collection("lostItems").document(docId).set(lostItem)
                                     .addOnSuccessListener(aVoid -> {
 
-                                        // Create notification for Lost item
+                                        // Create notification for Lost/Found item
                                         NotificationModel notification = new NotificationModel(
-                                                docId,           // documentId - the lost item document ID
-                                                firstName,       // fname
-                                                lastName,        // lastName
-                                                profileUrl,      // profileUrl - poster's profile image
-                                                date,           // date
-                                                time,           // time
-                                                "Lost",         // reportType
-                                                false,          // read status
+                                                docId,
+                                                firstName,
+                                                lastName,
+                                                profileUrl,
+                                                date,
+                                                time,
+                                                "Lost",  // or "Found"
+                                                false,
                                                 "active"
                                         );
-                                        notification.setPosterId(userId);  // ADD THIS LINE
+                                        notification.setPosterId(userId);
+                                        notification.setTimestamp(System.currentTimeMillis());  // ADD THIS LINE
 
                                         // Send notification to all users except current user
                                         db.collection("users").get().addOnSuccessListener(querySnapshot -> {

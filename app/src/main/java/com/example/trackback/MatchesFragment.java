@@ -67,7 +67,7 @@ public class MatchesFragment extends Fragment {
 
                         if (matches.isEmpty()) {
                             emptyView.setVisibility(View.VISIBLE);
-                            emptyView.setText("No matches yet\n\nWe'll notify you when we find potential matches for your items.");
+                            emptyView.setText("No matches yet");
                         } else {
                             recyclerView.setVisibility(View.VISIBLE);
                             adapter.updateMatches(matches);
